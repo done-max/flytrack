@@ -14,57 +14,57 @@ export const AircraftMarker: React.FC<AircraftMarkerProps> = ({
   showLabels,
   onSelect,
 }) => {
-  // Professional ATC Status Color Palette
+  // Primary: Radar Green, Critical: Red, Secondary: Blue
   const getStatusColor = (s: AircraftStatus) => {
     switch (s) {
       case 'CRITICAL':
         return {
-          primary: '#ef4444', // Red (Short-Term Conflict Alert - STCA)
-          secondary: '#f87171',
-          bg: 'rgba(239, 68, 68, 0.15)',
+          primary: '#ef4444', // Alert Red (STCA)
+          secondary: '#fca5a5',
+          bg: 'rgba(0, 0, 0, 0.95)',
           border: '#ef4444',
-          text: '#fca5a5',
+          text: '#ef4444',
         };
       case 'HIGH_RISK':
         return {
-          primary: '#f97316', // Orange
-          secondary: '#fb923c',
-          bg: 'rgba(249, 115, 22, 0.12)',
-          border: '#f97316',
-          text: '#fdba74',
+          primary: '#f87171', // Red-Orange High Risk
+          secondary: '#fca5a5',
+          bg: 'rgba(0, 0, 0, 0.95)',
+          border: '#f87171',
+          text: '#f87171',
         };
       case 'CAUTION':
         return {
           primary: '#f59e0b', // Amber
-          secondary: '#fbbf24',
-          bg: 'rgba(245, 158, 11, 0.12)',
+          secondary: '#fcd34d',
+          bg: 'rgba(0, 0, 0, 0.95)',
           border: '#f59e0b',
           text: '#fcd34d',
         };
       case 'NORMAL':
       default:
         return {
-          primary: '#38bdf8', // Tactical Radar Cyan / Emerald
-          secondary: '#7dd3fc',
-          bg: 'rgba(15, 23, 42, 0.85)',
-          border: '#0284c7',
-          text: '#e2e8f0',
+          primary: '#22c55e', // Phosphor Radar Green
+          secondary: '#86efac',
+          bg: 'rgba(0, 0, 0, 0.92)',
+          border: '#15803d',
+          text: '#4ade80',
         };
     }
   };
 
   const colors = getStatusColor(aircraft.status);
 
-  // Flight Level & Vertical Trend Symbol (Standard ICAO notation)
+  // Flight Level & Trend
   const flightLevel = Math.round(aircraft.altitude / 100);
   const formattedFL = String(flightLevel).padStart(3, '0');
   const altDiff = (aircraft.targetAltitude ?? aircraft.altitude) - aircraft.altitude;
   const trendChar = altDiff > 100 ? '↑' : altDiff < -100 ? '↓' : '=';
 
-  // 1-minute velocity vector leader length (pixels)
+  // 1-minute speed vector leader length
   const speedVectorLength = Math.max(14, (aircraft.speed / 60) * 3);
 
-  // Leader line offset to Full Data Block (FDB)
+  // J-hook leader line offset
   const leaderDx = 26;
   const leaderDy = -24;
 
@@ -77,7 +77,7 @@ export const AircraftMarker: React.FC<AircraftMarkerProps> = ({
         onSelect(aircraft);
       }}
     >
-      {/* Critical STCA Alert Ring */}
+      {/* Critical STCA Alert Pulse Ring in Red */}
       {aircraft.status === 'CRITICAL' && (
         <circle
           cx="0"
@@ -85,16 +85,16 @@ export const AircraftMarker: React.FC<AircraftMarkerProps> = ({
           r="16"
           fill="none"
           stroke="#ef4444"
-          strokeWidth="1.2"
+          strokeWidth="1.5"
           strokeDasharray="2 2"
           className="animate-spin"
-          style={{ animationDuration: '3s' }}
+          style={{ animationDuration: '2.5s' }}
         />
       )}
 
-      {/* Target Selection Brackets */}
+      {/* Target Selection Brackets in Secondary Blue */}
       {isSelected && (
-        <g className="selection-brackets pointer-events-none" stroke="#38bdf8" strokeWidth="1">
+        <g className="selection-brackets pointer-events-none" stroke="#38bdf8" strokeWidth="1.2">
           <path d="M -10,-6 L -10,-10 L -6,-10" fill="none" />
           <path d="M 10,-6 L 10,-10 L 6,-10" fill="none" />
           <path d="M -10,6 L -10,10 L -6,10" fill="none" />
@@ -102,7 +102,7 @@ export const AircraftMarker: React.FC<AircraftMarkerProps> = ({
         </g>
       )}
 
-      {/* Speed Vector Leader Line (1-min velocity heading vector) */}
+      {/* Speed Vector Leader Line */}
       <g transform={`rotate(${aircraft.heading})`}>
         <line
           x1="0"
@@ -111,9 +111,8 @@ export const AircraftMarker: React.FC<AircraftMarkerProps> = ({
           y2={-speedVectorLength}
           stroke={colors.primary}
           strokeWidth="1"
-          strokeOpacity="0.8"
+          strokeOpacity="0.85"
         />
-        {/* Speed tick at end of 1-minute vector */}
         <line
           x1="-2"
           y1={-speedVectorLength}
@@ -124,47 +123,45 @@ export const AircraftMarker: React.FC<AircraftMarkerProps> = ({
         />
       </g>
 
-      {/* Precision SSR Radar Target Blip */}
+      {/* Precision SSR Radar Target Chevron */}
       <g transform={`rotate(${aircraft.heading})`}>
-        {/* Crisp vector target chevron */}
         <polygon
           points="0,-6 4,4 0,2 -4,4"
           fill={colors.primary}
           stroke={colors.secondary}
           strokeWidth="0.5"
         />
-        <circle cx="0" cy="0" r="1.5" fill="#ffffff" />
+        <circle cx="0" cy="0" r="1.2" fill="#ffffff" />
       </g>
 
-      {/* Full Data Block (FDB) - Standard ATC 2-Line Datatag */}
+      {/* Full Data Block (FDB) */}
       {showLabels && (
         <g className="full-data-block select-none pointer-events-none">
           {/* 1px J-Hook Leader Line */}
           <polyline
             points={`0,0 ${leaderDx - 4},${leaderDy + 10} ${leaderDx},${leaderDy + 10}`}
             fill="none"
-            stroke={isSelected ? '#38bdf8' : '#475569'}
+            stroke={isSelected ? '#38bdf8' : colors.border}
             strokeWidth="0.8"
           />
 
-          {/* Minimalist Datatag Matrix */}
+          {/* Minimalist Black Datatag Plate */}
           <g transform={`translate(${leaderDx}, ${leaderDy})`}>
-            {/* Dark background tag plate */}
             <rect
               x="0"
               y="0"
               width="88"
               height="30"
-              fill={isSelected ? 'rgba(15, 23, 42, 0.95)' : 'rgba(8, 12, 20, 0.88)'}
+              fill={colors.bg}
               stroke={isSelected ? '#38bdf8' : colors.border}
-              strokeWidth={isSelected ? '1' : '0.6'}
+              strokeWidth={isSelected ? '1.2' : '0.8'}
             />
 
-            {/* Line 1: Callsign & FL / Trend / Speed */}
+            {/* Line 1: Callsign & FL / Speed */}
             <text
               x="4"
               y="11"
-              fill={aircraft.status === 'CRITICAL' ? '#ef4444' : isSelected ? '#ffffff' : colors.secondary}
+              fill={isSelected ? '#38bdf8' : colors.text}
               fontSize="9"
               fontWeight="700"
               letterSpacing="0.3"
@@ -174,7 +171,7 @@ export const AircraftMarker: React.FC<AircraftMarkerProps> = ({
             <text
               x="84"
               y="11"
-              fill="#e2e8f0"
+              fill={colors.text}
               fontSize="8.5"
               fontWeight="600"
               textAnchor="end"
@@ -186,7 +183,7 @@ export const AircraftMarker: React.FC<AircraftMarkerProps> = ({
             <text
               x="4"
               y="22"
-              fill="#94a3b8"
+              fill="#9ca3af"
               fontSize="8"
             >
               {aircraft.model ?? 'B738'}
@@ -194,7 +191,7 @@ export const AircraftMarker: React.FC<AircraftMarkerProps> = ({
             <text
               x="46"
               y="22"
-              fill="#cbd5e1"
+              fill="#d1d5db"
               fontSize="8"
               textAnchor="middle"
             >
@@ -203,7 +200,7 @@ export const AircraftMarker: React.FC<AircraftMarkerProps> = ({
             <text
               x="84"
               y="22"
-              fill="#94a3b8"
+              fill="#9ca3af"
               fontSize="8"
               textAnchor="end"
             >

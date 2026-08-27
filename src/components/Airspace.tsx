@@ -85,7 +85,7 @@ export const Airspace: React.FC<AirspaceProps> = ({
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full bg-[#04070e] overflow-hidden select-none cursor-crosshair border border-slate-800 rounded-sm"
+      className="relative w-full h-full bg-[#000000] overflow-hidden select-none cursor-crosshair border border-[#14532d]/70 rounded-xs shadow-[inset_0_0_20px_rgba(34,197,94,0.06)]"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -161,51 +161,51 @@ export const Airspace: React.FC<AirspaceProps> = ({
 
       {/* Scope Control Toolbar (Top Right) */}
       <div className="absolute top-2 right-2 z-20 flex items-center gap-1.5 font-mono">
-        <div className="flex items-center bg-[#090d16]/90 border border-slate-800 px-1 py-0.5 rounded text-xs">
+        <div className="flex items-center bg-[#050805]/95 border border-[#14532d] px-1 py-0.5 rounded-xs text-xs">
           <button
             onClick={() => handleZoom(1.15)}
             title="Zoom In"
-            className="p-1 text-slate-400 hover:text-slate-100 hover:bg-slate-800 rounded transition-colors"
+            className="p-1 text-slate-400 hover:text-green-400 hover:bg-[#0a120a] rounded transition-colors"
           >
             <ZoomIn className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => handleZoom(0.85)}
             title="Zoom Out"
-            className="p-1 text-slate-400 hover:text-slate-100 hover:bg-slate-800 rounded transition-colors"
+            className="p-1 text-slate-400 hover:text-green-400 hover:bg-[#0a120a] rounded transition-colors"
           >
             <ZoomOut className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={handleResetView}
             title="Reset Scope View"
-            className="p-1 text-slate-400 hover:text-slate-100 hover:bg-slate-800 rounded transition-colors"
+            className="p-1 text-slate-400 hover:text-green-400 hover:bg-[#0a120a] rounded transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        <div className="bg-[#090d16]/90 border border-slate-800 px-2 py-1 rounded text-[11px] text-slate-400 flex items-center gap-1">
-          <Compass className="w-3 h-3 text-cyan-400" />
+        <div className="bg-[#050805]/95 border border-[#14532d] px-2 py-1 rounded-xs text-[11px] text-green-400 flex items-center gap-1">
+          <Compass className="w-3 h-3 text-green-400" />
           <span>HDG REF: MAG 000°</span>
         </div>
       </div>
 
       {/* Scope Telemetry Footer (Bottom Left) */}
-      <div className="absolute bottom-2 left-2 z-20 flex items-center gap-2 bg-[#090d16]/90 border border-slate-800 px-2.5 py-1 rounded text-[11px] font-mono text-slate-400">
-        <div className="flex items-center gap-1 text-slate-300">
-          <Crosshair className="w-3 h-3 text-cyan-400" />
+      <div className="absolute bottom-2 left-2 z-20 flex items-center gap-2 bg-[#050805]/95 border border-[#14532d] px-2.5 py-1 rounded-xs text-[11px] font-mono text-slate-300">
+        <div className="flex items-center gap-1 text-green-400">
+          <Crosshair className="w-3 h-3" />
           <span>CURSOR:</span>
         </div>
         <span>
-          X: <strong className="text-slate-200">{cursorPos ? cursorPos.x : '---'}</strong>
+          X: <strong className="text-green-300">{cursorPos ? cursorPos.x : '---'}</strong>
         </span>
         <span>
-          Y: <strong className="text-slate-200">{cursorPos ? cursorPos.y : '---'}</strong>
+          Y: <strong className="text-green-300">{cursorPos ? cursorPos.y : '---'}</strong>
         </span>
-        <span className="text-slate-700">|</span>
+        <span className="text-slate-600">|</span>
         <span>
-          ZOOM: <strong className="text-slate-200">{Math.round(zoom * 100)}%</strong>
+          ZOOM: <strong className="text-green-300">{Math.round(zoom * 100)}%</strong>
         </span>
       </div>
     </div>

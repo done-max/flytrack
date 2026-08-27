@@ -18,21 +18,22 @@ export const TrajectoryLine: React.FC<TrajectoryLineProps> = ({
 }) => {
   if (!trajectory || trajectory.length === 0) return null;
 
-  const getStatusColor = (s: AircraftStatus) => {
+  const getStatusColor = (s: AircraftStatus, selected?: boolean) => {
+    if (selected) return '#38bdf8'; // Secondary Blue when selected
     switch (s) {
       case 'CRITICAL':
-        return '#ef4444';
+        return '#ef4444'; // Red
       case 'HIGH_RISK':
-        return '#f97316';
+        return '#f87171'; // Red-Orange
       case 'CAUTION':
-        return '#f59e0b';
+        return '#f59e0b'; // Amber
       case 'NORMAL':
       default:
-        return '#0284c7'; // Deep Sky / Cyan
+        return '#22c55e'; // Radar Green
     }
   };
 
-  const strokeColor = getStatusColor(status);
+  const strokeColor = getStatusColor(status, isSelected);
   const endPoint = trajectory[trajectory.length - 1];
 
   return (
@@ -46,13 +47,12 @@ export const TrajectoryLine: React.FC<TrajectoryLineProps> = ({
         stroke={strokeColor}
         strokeWidth={isSelected ? 1.2 : 0.8}
         strokeDasharray="3 3"
-        strokeOpacity={isSelected ? 0.9 : 0.55}
+        strokeOpacity={isSelected ? 0.95 : 0.6}
       />
 
       {/* Discrete time prediction ticks (+30s, +60s) */}
       {trajectory.map((point) => (
         <g key={`traj-tick-${point.timeOffsetSeconds}`} transform={`translate(${point.x}, ${point.y})`}>
-          {/* Subtle perpendicular tick mark */}
           <line
             x1="-2.5"
             y1="0"
@@ -72,14 +72,13 @@ export const TrajectoryLine: React.FC<TrajectoryLineProps> = ({
             strokeOpacity="0.8"
           />
 
-          {/* Time tag for selected or 30s intervals */}
           {(isSelected || point.timeOffsetSeconds % 30 === 0) && (
             <text
               x="4"
               y="-3"
               fill={strokeColor}
               fontSize="7.5"
-              fillOpacity={isSelected ? 0.9 : 0.65}
+              fillOpacity={isSelected ? 0.95 : 0.75}
               fontWeight="600"
             >
               +{point.timeOffsetSeconds}s
@@ -96,7 +95,7 @@ export const TrajectoryLine: React.FC<TrajectoryLineProps> = ({
         fill="none"
         stroke={strokeColor}
         strokeWidth="1"
-        strokeOpacity="0.8"
+        strokeOpacity="0.85"
       />
     </g>
   );

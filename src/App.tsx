@@ -11,7 +11,7 @@ import { AddAircraftModal } from './components/AddAircraftModal';
 import { AlertTriangle, CheckCircle } from 'lucide-react';
 
 export const App: React.FC = () => {
-  // Scenario 2: Potential Collision by default to showcase predictive trajectory crossing
+  // Scenario 2: Potential Collision by default to demonstrate predictive trajectory crossing
   const defaultScenario = SCENARIOS.scenario_collision;
   const [activeScenario, setActiveScenario] = useState<ScenarioDefinition>(defaultScenario);
 
@@ -128,8 +128,8 @@ export const App: React.FC = () => {
   const cautionCount = aircraftList.filter((a) => a.status === 'CAUTION' || a.status === 'HIGH_RISK').length;
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-[#04070d] text-slate-200 overflow-hidden font-mono select-none">
-      {/* Top Operations Header */}
+    <div className="flex flex-col h-screen w-screen bg-[#000000] text-slate-200 overflow-hidden font-mono select-none">
+      {/* Top Operations Header in Black & Green */}
       <TopNav
         isRunning={settings.isRunning}
         simSpeed={settings.simSpeed}
@@ -139,7 +139,7 @@ export const App: React.FC = () => {
         onTogglePlayPause={handleTogglePlayPause}
       />
 
-      {/* Main ATM Workstation Deck */}
+      {/* Main Tactical Workstation Deck */}
       <div className="flex-1 flex overflow-hidden p-2 gap-2">
         {/* Left Side: Master Console & Strip Rack */}
         <div className="w-80 flex flex-col gap-2 overflow-y-auto shrink-0 pr-0.5">
@@ -172,48 +172,48 @@ export const App: React.FC = () => {
             onSelectAircraft={handleSelectAircraft}
           />
 
-          {/* Bottom Tactical Separation Monitor Bar */}
-          <div className="mt-1.5 bg-[#090d14] border border-slate-800 px-3 py-1.5 rounded flex items-center justify-between text-xs">
+          {/* Bottom Tactical Separation Safety Bar */}
+          <div className="mt-1.5 bg-[#040704] border border-[#14532d] px-3 py-1.5 rounded-xs flex items-center justify-between text-xs">
             <div className="flex items-center gap-3">
-              <span className="text-slate-500 font-bold text-[10px]">
+              <span className="text-green-500 font-bold text-[10px]">
                 STCA SEPARATION SAFETY STATUS:
               </span>
 
               {criticalCount > 0 ? (
-                <span className="flex items-center gap-1.5 text-red-400 font-bold bg-red-950/60 px-2 py-0.5 rounded border border-red-500 text-[11px] animate-pulse">
+                <span className="flex items-center gap-1.5 text-red-300 font-bold bg-[#1a0505] px-2 py-0.5 rounded-xs border border-red-500 text-[11px] animate-pulse">
                   <AlertTriangle className="w-3 h-3 text-red-400" />
                   STCA CONFLICT WARNING — LATERAL / VERTICAL LOSS OF SEPARATION
                 </span>
               ) : cautionCount > 0 ? (
-                <span className="flex items-center gap-1.5 text-amber-300 font-semibold bg-amber-950/40 px-2 py-0.5 rounded border border-amber-600/60 text-[11px]">
+                <span className="flex items-center gap-1.5 text-amber-300 font-semibold bg-[#1a1405] px-2 py-0.5 rounded-xs border border-amber-500 text-[11px]">
                   <AlertTriangle className="w-3 h-3 text-amber-400" />
                   CONVERGING FLIGHT VECTORS — MONITORING SEPARATION
                 </span>
               ) : (
-                <span className="flex items-center gap-1.5 text-emerald-400 font-semibold bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-700/40 text-[11px]">
-                  <CheckCircle className="w-3 h-3 text-emerald-400" />
+                <span className="flex items-center gap-1.5 text-green-400 font-semibold bg-[#051805] px-2 py-0.5 rounded-xs border border-green-600 text-[11px]">
+                  <CheckCircle className="w-3 h-3 text-green-400" />
                   AIRWAYS NOMINAL — STANDARD 5 NM / 1,000 FT SEPARATION MAINTAINED
                 </span>
               )}
             </div>
 
-            {/* Tactical Status Legend */}
+            {/* Tactical Status Legend (Green / Amber / Red / Blue) */}
             <div className="hidden xl:flex items-center gap-3 text-[10px] text-slate-400">
               <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-xs bg-[#38bdf8] inline-block"></span>
-                <span>NORM</span>
+                <span className="w-2 h-2 rounded-xs bg-[#22c55e] inline-block"></span>
+                <span className="text-green-400">NOMINAL</span>
               </span>
               <span className="flex items-center gap-1">
                 <span className="w-2 h-2 rounded-xs bg-amber-400 inline-block"></span>
-                <span>CAUTION</span>
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-xs bg-orange-400 inline-block"></span>
-                <span>HIGH RISK</span>
+                <span className="text-amber-400">CAUTION</span>
               </span>
               <span className="flex items-center gap-1">
                 <span className="w-2 h-2 rounded-xs bg-red-500 inline-block"></span>
-                <span>STCA ALERT</span>
+                <span className="text-red-400">STCA ALERT</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-xs bg-[#38bdf8] inline-block"></span>
+                <span className="text-blue-400">HOOKED TARGET</span>
               </span>
             </div>
           </div>

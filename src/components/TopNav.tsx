@@ -38,60 +38,60 @@ export const TopNav: React.FC<TopNavProps> = ({
   };
 
   return (
-    <header className="bg-[#090d14] border-b border-slate-800 px-4 py-2 flex items-center justify-between select-none z-30 font-mono">
+    <header className="bg-[#020502] border-b border-[#14532d] px-4 py-2 flex items-center justify-between select-none z-30 font-mono">
       {/* Brand & Sector Identity */}
       <div className="flex items-center gap-3">
-        <div className="flex items-center justify-center w-7 h-7 bg-slate-900 border border-slate-700 rounded text-cyan-400">
+        <div className="flex items-center justify-center w-7 h-7 bg-[#050f05] border border-[#22c55e]/60 rounded-xs text-green-400">
           <Shield className="w-4 h-4" />
         </div>
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold tracking-wider text-slate-100 uppercase">
-              SKYGUARD <span className="text-cyan-400">ATM</span>
+            <span className="text-xs font-bold tracking-wider text-green-400 uppercase">
+              SKYGUARD <span className="text-slate-100">ATM</span>
             </span>
-            <span className="text-[10px] text-slate-500 font-normal">|</span>
-            <span className="text-[11px] text-slate-400 font-medium">
+            <span className="text-[10px] text-[#14532d] font-normal">|</span>
+            <span className="text-[11px] text-green-300/80 font-medium">
               SECTOR 04 HIGH [ZNY-ENROUTE]
             </span>
           </div>
-          <p className="text-[10px] text-slate-500 tracking-tight">
-            ACTIVE PROFILE: <span className="text-slate-300 font-semibold uppercase">{activeScenarioName}</span>
+          <p className="text-[10px] text-slate-400 tracking-tight">
+            ACTIVE PROFILE: <span className="text-green-400 font-semibold uppercase">{activeScenarioName}</span>
           </p>
         </div>
       </div>
 
-      {/* Telemetry & Clocks */}
+      {/* Telemetry & Clocks (Green & Blue Accents) */}
       <div className="flex items-center gap-4 text-xs">
-        <div className="flex items-center gap-2 bg-[#06090f] border border-slate-800 px-2.5 py-1 rounded">
-          <Clock className="w-3.5 h-3.5 text-slate-500" />
-          <span className="text-slate-500 text-[10px]">TIME:</span>
-          <span className="text-slate-200 font-semibold tracking-wider">{utcTime || '00:00:00 ZULU'}</span>
+        <div className="flex items-center gap-2 bg-[#050805] border border-[#14532d] px-2.5 py-1 rounded-xs">
+          <Clock className="w-3.5 h-3.5 text-blue-400" />
+          <span className="text-slate-400 text-[10px]">TIME:</span>
+          <span className="text-green-300 font-semibold tracking-wider">{utcTime || '00:00:00 ZULU'}</span>
         </div>
 
-        <div className="flex items-center gap-2 bg-[#06090f] border border-slate-800 px-2.5 py-1 rounded">
-          <Activity className="w-3.5 h-3.5 text-slate-500" />
-          <span className="text-slate-500 text-[10px]">SIM CLOCK:</span>
-          <span className="text-cyan-400 font-bold tabular-nums">{formatSimTime(simTimeSeconds)}</span>
-          <span className="text-[10px] px-1 py-0.2 bg-slate-800 text-slate-300 rounded">
-            {simSpeed}x
+        <div className="flex items-center gap-2 bg-[#050805] border border-[#14532d] px-2.5 py-1 rounded-xs">
+          <Activity className="w-3.5 h-3.5 text-green-400" />
+          <span className="text-slate-400 text-[10px]">SIM CLOCK:</span>
+          <span className="text-green-400 font-bold tabular-nums">{formatSimTime(simTimeSeconds)}</span>
+          <span className="text-[10px] px-1 py-0.2 bg-[#0a180a] text-blue-300 border border-blue-900 rounded-xs">
+            {simSpeed}X
           </span>
         </div>
 
-        <div className="hidden lg:flex items-center gap-2 bg-[#06090f] border border-slate-800 px-2.5 py-1 rounded">
-          <Radio className="w-3.5 h-3.5 text-slate-500" />
-          <span className="text-slate-500 text-[10px]">RADAR TRACKS:</span>
-          <span className="text-slate-200 font-bold tabular-nums">{aircraftCount} ACTIVE</span>
+        <div className="hidden lg:flex items-center gap-2 bg-[#050805] border border-[#14532d] px-2.5 py-1 rounded-xs">
+          <Radio className="w-3.5 h-3.5 text-green-400" />
+          <span className="text-slate-400 text-[10px]">RADAR TRACKS:</span>
+          <span className="text-green-300 font-bold tabular-nums">{aircraftCount} ACTIVE</span>
         </div>
       </div>
 
-      {/* Simulation Master State */}
+      {/* Simulation Master State Controls */}
       <div className="flex items-center gap-2">
         <button
           onClick={onTogglePlayPause}
-          className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded border transition-colors cursor-pointer ${
+          className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-xs border transition-colors cursor-pointer ${
             isRunning
-              ? 'bg-slate-900 border-amber-500/60 text-amber-300 hover:bg-slate-800'
-              : 'bg-slate-900 border-emerald-500/60 text-emerald-300 hover:bg-slate-800'
+              ? 'bg-[#1a0505] border-red-500/80 text-red-300 hover:bg-[#2a0808]'
+              : 'bg-[#051a05] border-green-500/80 text-green-300 hover:bg-[#082a08]'
           }`}
         >
           {isRunning ? (
@@ -108,15 +108,15 @@ export const TopNav: React.FC<TopNavProps> = ({
         </button>
 
         <div
-          className={`flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-bold border ${
+          className={`flex items-center gap-1.5 px-2 py-1 rounded-xs text-[10px] font-bold border ${
             isRunning
-              ? 'bg-[#061e14] border-emerald-600/50 text-emerald-400'
-              : 'bg-[#1f1406] border-amber-600/50 text-amber-400'
+              ? 'bg-[#051405] border-green-600/80 text-green-400'
+              : 'bg-[#140505] border-red-600/80 text-red-400'
           }`}
         >
           <span
             className={`w-1.5 h-1.5 rounded-full ${
-              isRunning ? 'bg-emerald-400' : 'bg-amber-400'
+              isRunning ? 'bg-green-400' : 'bg-red-400'
             }`}
           />
           <span>{isRunning ? 'RADAR ACTIVE' : 'HOLD'}</span>

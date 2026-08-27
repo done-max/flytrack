@@ -26,14 +26,14 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
 }) => {
   if (!aircraft) {
     return (
-      <div className="bg-[#090d14] border border-slate-800 rounded p-4 text-slate-500 select-none flex flex-col items-center justify-center min-h-[260px] text-center font-mono">
-        <div className="w-8 h-8 rounded border border-slate-800 bg-slate-900 flex items-center justify-center mb-2 text-slate-600">
+      <div className="bg-[#040704] border border-[#14532d] rounded-xs p-4 text-slate-500 select-none flex flex-col items-center justify-center min-h-[260px] text-center font-mono">
+        <div className="w-8 h-8 rounded-xs border border-[#14532d] bg-[#020502] flex items-center justify-center mb-2 text-green-500 font-bold">
           +
         </div>
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-green-400/80 mb-1">
           NO ACTIVE TRACK HOOKED
         </h3>
-        <p className="text-[11px] text-slate-600 max-w-[220px]">
+        <p className="text-[11px] text-slate-400 max-w-[220px]">
           Click an SSR target on the radar scope or select a flight progress strip to view and modify flight clearances.
         </p>
       </div>
@@ -44,29 +44,29 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
     switch (status) {
       case 'CRITICAL':
         return (
-          <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-950/80 border border-red-500 text-red-300 font-mono text-[10px] font-bold">
-            <AlertTriangle className="w-3 h-3" />
+          <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-xs bg-[#1a0505] border border-red-500 text-red-300 font-mono text-[10px] font-bold animate-pulse">
+            <AlertTriangle className="w-3 h-3 text-red-400" />
             STCA CONFLICT
           </span>
         );
       case 'HIGH_RISK':
         return (
-          <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-orange-950/80 border border-orange-500 text-orange-300 font-mono text-[10px] font-bold">
-            <AlertOctagon className="w-3 h-3" />
+          <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-xs bg-[#1a0805] border border-red-400 text-red-300 font-mono text-[10px] font-bold">
+            <AlertOctagon className="w-3 h-3 text-red-400" />
             HIGH RISK
           </span>
         );
       case 'CAUTION':
         return (
-          <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-950/80 border border-amber-500 text-amber-300 font-mono text-[10px] font-bold">
-            <AlertTriangle className="w-3 h-3" />
+          <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-xs bg-[#1a1405] border border-amber-500 text-amber-300 font-mono text-[10px] font-bold">
+            <AlertTriangle className="w-3 h-3 text-amber-400" />
             CAUTION
           </span>
         );
       case 'NORMAL':
       default:
         return (
-          <span className="px-1.5 py-0.5 rounded bg-slate-900 border border-slate-700 text-emerald-400 font-mono text-[10px] font-semibold">
+          <span className="px-1.5 py-0.5 rounded-xs bg-[#051805] border border-green-500 text-green-300 font-mono text-[10px] font-semibold">
             NOMINAL
           </span>
         );
@@ -79,25 +79,24 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
     onUpdateAircraft(aircraft.id, { heading: normalized });
   };
 
-  // Approximate Mach number from Ground Speed (assuming cruise at FL300)
   const approxMach = (aircraft.speed / 573).toFixed(2);
 
   return (
-    <div className="flex flex-col gap-3 bg-[#090d14] border border-slate-800 rounded p-3 text-slate-200 select-none font-mono text-xs">
+    <div className="flex flex-col gap-3 bg-[#040704] border border-[#14532d] rounded-xs p-3 text-slate-200 select-none font-mono text-xs">
       {/* Header & Track Identification */}
-      <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+      <div className="flex items-center justify-between border-b border-[#14532d] pb-2">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-cyan-300 tracking-wider">
+            <span className="text-sm font-bold text-green-300 tracking-wider">
               {aircraft.callsign}
             </span>
-            <span className="text-[10px] px-1 py-0.2 bg-slate-800 text-slate-300 rounded">
+            <span className="text-[10px] px-1 py-0.2 bg-[#081408] border border-[#14532d] text-blue-300 rounded-xs">
               {aircraft.model ?? 'B738'}
             </span>
           </div>
-          <p className="text-[10px] text-slate-500">
-            SSR: <span className="text-slate-300">{aircraft.squawk ?? '1200'}</span> | ROUTE:{' '}
-            <span className="text-slate-300">
+          <p className="text-[10px] text-slate-400">
+            SSR: <span className="text-green-400">{aircraft.squawk ?? '1200'}</span> | ROUTE:{' '}
+            <span className="text-blue-300">
               {aircraft.origin ?? 'BOS'} ➔ {aircraft.destination ?? 'SFO'}
             </span>
           </p>
@@ -108,59 +107,59 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
           <button
             onClick={onDeselect}
             title="Deselect Target"
-            className="p-1 text-slate-400 hover:text-slate-100 hover:bg-slate-800 rounded transition-colors cursor-pointer"
+            className="p-1 text-slate-400 hover:text-green-300 hover:bg-[#081408] rounded transition-colors cursor-pointer"
           >
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      {/* Radar Flight Telemetry Matrix */}
-      <div className="grid grid-cols-2 gap-1.5 text-[11px] bg-[#06090f] border border-slate-800/80 p-2 rounded">
+      {/* Radar Flight Telemetry Matrix in Black, Green & Blue */}
+      <div className="grid grid-cols-2 gap-1.5 text-[11px] bg-[#020502] border border-[#14532d] p-2 rounded-xs">
         <div>
-          <span className="text-[9px] text-slate-500 uppercase block">RADAR COORD</span>
+          <span className="text-[9px] text-green-500/80 uppercase block">RADAR COORD</span>
           <span className="text-slate-200 font-semibold">
             X:{Math.round(aircraft.x)} Y:{Math.round(aircraft.y)}
           </span>
         </div>
         <div>
-          <span className="text-[9px] text-slate-500 uppercase block">ALTITUDE / FL</span>
-          <span className="text-cyan-300 font-semibold">
+          <span className="text-[9px] text-green-500/80 uppercase block">ALTITUDE / FL</span>
+          <span className="text-green-300 font-semibold">
             {aircraft.altitude.toLocaleString()} FT (FL{Math.round(aircraft.altitude / 100)})
           </span>
         </div>
         <div>
-          <span className="text-[9px] text-slate-500 uppercase block">GROUND SPEED / MACH</span>
+          <span className="text-[9px] text-green-500/80 uppercase block">GROUND SPEED / MACH</span>
           <span className="text-slate-200 font-semibold">
             {Math.round(aircraft.speed)} KTS / M{approxMach}
           </span>
         </div>
         <div>
-          <span className="text-[9px] text-slate-500 uppercase block">TRACK / VECTOR</span>
-          <span className="text-slate-200 font-semibold">
+          <span className="text-[9px] text-green-500/80 uppercase block">TRACK / VECTOR</span>
+          <span className="text-blue-300 font-semibold">
             HDG {String(Math.round(aircraft.heading)).padStart(3, '0')}°
           </span>
         </div>
       </div>
 
       {/* Tactical Controller Clearance Panel */}
-      <div className="flex flex-col gap-2.5 border-t border-slate-800/80 pt-2">
+      <div className="flex flex-col gap-2.5 border-t border-[#14532d] pt-2">
         <div className="flex items-center justify-between">
-          <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 flex items-center gap-1">
-            <Sliders className="w-3 h-3 text-cyan-400" />
+          <label className="text-[10px] font-semibold uppercase tracking-wider text-green-400 flex items-center gap-1">
+            <Sliders className="w-3 h-3 text-green-400" />
             <span>ATC VECTOR CLEARANCES</span>
           </label>
-          <span className="text-[9px] text-slate-500">DIRECT EXEC</span>
+          <span className="text-[9px] text-blue-400 font-bold">DIRECT EXEC</span>
         </div>
 
         {/* 1. ASSIGNED HEADING */}
-        <div className="space-y-1 bg-[#06090f] p-2 rounded border border-slate-800/80">
+        <div className="space-y-1 bg-[#020502] p-2 rounded-xs border border-[#14532d]">
           <div className="flex items-center justify-between text-[11px]">
-            <span className="text-slate-400 flex items-center gap-1">
-              <Compass className="w-3 h-3 text-slate-500" />
+            <span className="text-slate-300 flex items-center gap-1">
+              <Compass className="w-3 h-3 text-green-400" />
               ASSIGNED HEADING
             </span>
-            <span className="text-cyan-300 font-bold px-1.5 py-0.2 bg-slate-900 border border-slate-800 rounded">
+            <span className="text-green-300 font-bold px-1.5 py-0.2 bg-[#051405] border border-green-600 rounded-xs">
               {String(Math.round(aircraft.heading)).padStart(3, '0')}° MAG
             </span>
           </div>
@@ -171,7 +170,7 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
             max="359"
             value={Math.round(aircraft.heading)}
             onChange={(e) => handleHeadingChange(Number(e.target.value))}
-            className="w-full h-1 bg-slate-800 rounded appearance-none cursor-pointer accent-cyan-400"
+            className="w-full h-1 bg-slate-900 rounded appearance-none cursor-pointer accent-green-400"
           />
 
           {/* Heading step modifiers */}
@@ -180,7 +179,7 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
               <button
                 key={delta}
                 onClick={() => handleHeadingChange(aircraft.heading + delta)}
-                className="flex-1 py-0.5 text-[10px] bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded text-slate-300 transition-colors cursor-pointer"
+                className="flex-1 py-0.5 text-[10px] bg-[#051405] hover:bg-[#082808] border border-[#14532d] rounded-xs text-green-300 transition-colors cursor-pointer"
               >
                 {delta > 0 ? `+${delta}°` : `${delta}°`}
               </button>
@@ -189,13 +188,13 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
         </div>
 
         {/* 2. ASSIGNED SPEED */}
-        <div className="space-y-1 bg-[#06090f] p-2 rounded border border-slate-800/80">
+        <div className="space-y-1 bg-[#020502] p-2 rounded-xs border border-[#14532d]">
           <div className="flex items-center justify-between text-[11px]">
-            <span className="text-slate-400 flex items-center gap-1">
-              <Gauge className="w-3 h-3 text-slate-500" />
+            <span className="text-slate-300 flex items-center gap-1">
+              <Gauge className="w-3 h-3 text-green-400" />
               ASSIGNED SPEED
             </span>
-            <span className="text-cyan-300 font-bold px-1.5 py-0.2 bg-slate-900 border border-slate-800 rounded">
+            <span className="text-green-300 font-bold px-1.5 py-0.2 bg-[#051405] border border-green-600 rounded-xs">
               {Math.round(aircraft.speed)} KTS
             </span>
           </div>
@@ -207,10 +206,10 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
             step="10"
             value={Math.round(aircraft.speed)}
             onChange={(e) => onUpdateAircraft(aircraft.id, { speed: Number(e.target.value) })}
-            className="w-full h-1 bg-slate-800 rounded appearance-none cursor-pointer accent-cyan-400"
+            className="w-full h-1 bg-slate-900 rounded appearance-none cursor-pointer accent-green-400"
           />
 
-          <div className="flex justify-between text-[8.5px] text-slate-500">
+          <div className="flex justify-between text-[8.5px] text-slate-400">
             <span>250 KT (HOLD)</span>
             <span>500 KT (CRZ)</span>
             <span>850 KT (MAX)</span>
@@ -218,13 +217,13 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
         </div>
 
         {/* 3. CLEARED FLIGHT LEVEL */}
-        <div className="space-y-1 bg-[#06090f] p-2 rounded border border-slate-800/80">
+        <div className="space-y-1 bg-[#020502] p-2 rounded-xs border border-[#14532d]">
           <div className="flex items-center justify-between text-[11px]">
-            <span className="text-slate-400 flex items-center gap-1">
-              <ArrowUpRight className="w-3 h-3 text-slate-500" />
+            <span className="text-slate-300 flex items-center gap-1">
+              <ArrowUpRight className="w-3 h-3 text-green-400" />
               CLEARED FLIGHT LEVEL
             </span>
-            <span className="text-cyan-300 font-bold px-1.5 py-0.2 bg-slate-900 border border-slate-800 rounded">
+            <span className="text-green-300 font-bold px-1.5 py-0.2 bg-[#051405] border border-green-600 rounded-xs">
               FL{Math.round(aircraft.altitude / 100)} ({aircraft.altitude.toLocaleString()} FT)
             </span>
           </div>
@@ -239,10 +238,10 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
               const alt = Number(e.target.value);
               onUpdateAircraft(aircraft.id, { altitude: alt, targetAltitude: alt });
             }}
-            className="w-full h-1 bg-slate-800 rounded appearance-none cursor-pointer accent-cyan-400"
+            className="w-full h-1 bg-slate-900 rounded appearance-none cursor-pointer accent-green-400"
           />
 
-          <div className="flex justify-between text-[8.5px] text-slate-500">
+          <div className="flex justify-between text-[8.5px] text-slate-400">
             <span>FL100</span>
             <span>FL300</span>
             <span>FL450</span>
@@ -251,18 +250,18 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
       </div>
 
       {/* Delete / Deselect Actions */}
-      <div className="border-t border-slate-800/80 pt-2 flex items-center justify-between">
+      <div className="border-t border-[#14532d] pt-2 flex items-center justify-between">
         <button
           onClick={() => onRemoveAircraft(aircraft.id)}
-          className="flex items-center gap-1 px-2 py-1 text-[11px] bg-red-950/30 hover:bg-red-900/50 border border-red-500/40 text-red-300 rounded transition-colors cursor-pointer"
+          className="flex items-center gap-1 px-2 py-1 text-[11px] bg-[#1a0505] hover:bg-[#2a0808] border border-red-500/80 text-red-300 rounded-xs transition-colors cursor-pointer"
         >
-          <Trash2 className="w-3 h-3" />
+          <Trash2 className="w-3 h-3 text-red-400" />
           <span>TERMINATE TRACK</span>
         </button>
 
         <button
           onClick={onDeselect}
-          className="px-2.5 py-1 text-[11px] bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 rounded transition-colors cursor-pointer"
+          className="px-2.5 py-1 text-[11px] bg-[#051405] hover:bg-[#082008] border border-[#14532d] text-green-300 rounded-xs transition-colors cursor-pointer"
         >
           DESELECT
         </button>

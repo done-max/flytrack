@@ -17,14 +17,14 @@ export const FlightTrail: React.FC<FlightTrailProps> = ({
   const getStatusColor = (s: AircraftStatus) => {
     switch (s) {
       case 'CRITICAL':
-        return '#ef4444';
+        return '#ef4444'; // Red
       case 'HIGH_RISK':
-        return '#f97316';
+        return '#f87171'; // Red-Orange
       case 'CAUTION':
-        return '#f59e0b';
+        return '#f59e0b'; // Amber
       case 'NORMAL':
       default:
-        return '#38bdf8';
+        return '#22c55e'; // Radar Green
     }
   };
 
@@ -33,14 +33,12 @@ export const FlightTrail: React.FC<FlightTrailProps> = ({
 
   return (
     <g className="atc-history-returns pointer-events-none">
-      {/* Authentic ATC Primary Radar History Dots (Past Antenna Sweeps) */}
+      {/* Primary Radar Phosphor History Dots */}
       {history.map((point, index) => {
-        // Sample every 4th breadcrumb to represent distinct radar sweep updates
         if (index % 4 !== 0 || index === total - 1) return null;
         
         const progress = index / total;
-        // Phosphor decay: older returns are dimmer and smaller
-        const opacity = Math.max(0.12, Math.pow(progress, 2) * 0.7);
+        const opacity = Math.max(0.12, Math.pow(progress, 2) * 0.75);
         const radius = 0.8 + progress * 0.8;
 
         return (
@@ -55,7 +53,7 @@ export const FlightTrail: React.FC<FlightTrailProps> = ({
         );
       })}
 
-      {/* Faint connecting track line */}
+      {/* Faint Connecting Track Line */}
       {history.map((point, index) => {
         if (index === 0) return null;
         const prev = history[index - 1];
