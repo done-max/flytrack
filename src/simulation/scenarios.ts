@@ -1,0 +1,193 @@
+import type { ScenarioDefinition } from '../types/aircraft';
+import { createAircraft } from './aircraft';
+
+export const SCENARIOS: Record<string, ScenarioDefinition> = {
+  scenario_normal: {
+    id: 'scenario_normal',
+    name: 'Scenario 1: Normal Traffic',
+    tagline: 'Standard Airway Separation',
+    description:
+      'Three commercial aircraft maintaining safe lateral and vertical separation along established navigation waypoints.',
+    aircraft: [
+      createAircraft({
+        id: 'AC001',
+        callsign: 'SKY 101',
+        model: 'B787-9',
+        x: 180,
+        y: 280,
+        altitude: 33000,
+        speed: 520,
+        heading: 85, // West to East
+        origin: 'JFK',
+        destination: 'LHR',
+        status: 'NORMAL',
+      }),
+      createAircraft({
+        id: 'AC002',
+        callsign: 'AAL 452',
+        model: 'A350-900',
+        x: 620,
+        y: 650,
+        altitude: 37000,
+        speed: 510,
+        heading: 320, // South-East to North-West
+        origin: 'MIA',
+        destination: 'ORD',
+        status: 'NORMAL',
+      }),
+      createAircraft({
+        id: 'AC003',
+        callsign: 'DLH 789',
+        model: 'B737-MAX8',
+        x: 820,
+        y: 200,
+        altitude: 35000,
+        speed: 480,
+        heading: 220, // North-East to South-West safe parallel corridor
+        origin: 'FRA',
+        destination: 'YYZ',
+        status: 'NORMAL',
+      }),
+    ],
+  },
+
+  scenario_collision: {
+    id: 'scenario_collision',
+    name: 'Scenario 2: Potential Collision',
+    tagline: 'Converging Trajectories at Equal Altitude',
+    description:
+      'Two aircraft (SKY 101 and UAL 452) on an intersecting 90-degree intercept trajectory at FL300 (30,000 ft), demonstrating predictive trajectory conflict.',
+    aircraft: [
+      // Aircraft A: Moving from the left toward center
+      createAircraft({
+        id: 'AC001',
+        callsign: 'SKY 101',
+        model: 'B777-300ER',
+        x: 140,
+        y: 380,
+        altitude: 30000,
+        speed: 560,
+        heading: 80, // Moving Eastward towards center
+        origin: 'LAX',
+        destination: 'JFK',
+        status: 'CAUTION',
+      }),
+      // Aircraft B: Moving from bottom/right toward center
+      createAircraft({
+        id: 'AC002',
+        callsign: 'UAL 452',
+        model: 'A330-300',
+        x: 680,
+        y: 720,
+        altitude: 30000,
+        speed: 540,
+        heading: 330, // Moving North-Westward towards center intersection
+        origin: 'DFW',
+        destination: 'BOS',
+        status: 'CAUTION',
+      }),
+      // Aircraft C: Moving independently in a safe direction at different altitude
+      createAircraft({
+        id: 'AC003',
+        callsign: 'BAW 214',
+        model: 'A380-800',
+        x: 750,
+        y: 180,
+        altitude: 38000,
+        speed: 490,
+        heading: 260, // Clear westbound cruise
+        origin: 'LHR',
+        destination: 'SFO',
+        status: 'NORMAL',
+      }),
+    ],
+  },
+
+  scenario_multi: {
+    id: 'scenario_multi',
+    name: 'Scenario 3: Multiple Aircraft Traffic',
+    tagline: 'Dense Multi-Corridor Airspace Sector',
+    description:
+      'High-density terminal radar approach sector with 6 commercial airliners operating across multiple flight levels and crossing flight paths.',
+    aircraft: [
+      createAircraft({
+        id: 'AC001',
+        callsign: 'SKY 101',
+        model: 'B737-800',
+        x: 120,
+        y: 300,
+        altitude: 30000,
+        speed: 510,
+        heading: 75,
+        origin: 'SEA',
+        destination: 'DEN',
+        status: 'NORMAL',
+      }),
+      createAircraft({
+        id: 'AC002',
+        callsign: 'AFR 012',
+        model: 'A350-1000',
+        x: 550,
+        y: 720,
+        altitude: 34000,
+        speed: 530,
+        heading: 345,
+        origin: 'CDG',
+        destination: 'IAH',
+        status: 'NORMAL',
+      }),
+      createAircraft({
+        id: 'AC003',
+        callsign: 'QFA 008',
+        model: 'B787-9',
+        x: 850,
+        y: 250,
+        altitude: 36000,
+        speed: 560,
+        heading: 235,
+        origin: 'SYD',
+        destination: 'DFW',
+        status: 'NORMAL',
+      }),
+      createAircraft({
+        id: 'AC004',
+        callsign: 'SWA 1940',
+        model: 'B737-700',
+        x: 220,
+        y: 680,
+        altitude: 28000,
+        speed: 460,
+        heading: 40,
+        origin: 'PHX',
+        destination: 'MDW',
+        status: 'NORMAL',
+      }),
+      createAircraft({
+        id: 'AC005',
+        callsign: 'UAE 203',
+        model: 'A380-800',
+        x: 480,
+        y: 120,
+        altitude: 39000,
+        speed: 580,
+        heading: 165,
+        origin: 'DXB',
+        destination: 'MCO',
+        status: 'NORMAL',
+      }),
+      createAircraft({
+        id: 'AC006',
+        callsign: 'KLM 641',
+        model: 'B777-200ER',
+        x: 880,
+        y: 620,
+        altitude: 32000,
+        speed: 500,
+        heading: 295,
+        origin: 'AMS',
+        destination: 'ATL',
+        status: 'NORMAL',
+      }),
+    ],
+  },
+};
