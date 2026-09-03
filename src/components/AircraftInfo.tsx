@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Aircraft, AircraftStatus } from '../types/aircraft';
+import type { CollisionPrediction } from '../types/collision';
 import {
   X,
   Trash2,
@@ -9,10 +10,12 @@ import {
   ArrowUpRight,
   AlertTriangle,
   AlertOctagon,
+  Flame,
 } from 'lucide-react';
 
 interface AircraftInfoProps {
   aircraft: Aircraft | null;
+  activeConflict?: CollisionPrediction | null;
   onUpdateAircraft: (id: string, updates: Partial<Aircraft>) => void;
   onDeselect: () => void;
   onRemoveAircraft: (id: string) => void;
@@ -20,6 +23,7 @@ interface AircraftInfoProps {
 
 export const AircraftInfo: React.FC<AircraftInfoProps> = ({
   aircraft,
+  activeConflict,
   onUpdateAircraft,
   onDeselect,
   onRemoveAircraft,
@@ -80,6 +84,11 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
   };
 
   const approxMach = (aircraft.speed / 573).toFixed(2);
+  const otherAircraft = activeConflict
+    ? activeConflict.aircraftA.id === aircraft.id
+      ? activeConflict.aircraftB
+      : activeConflict.aircraftA
+    : null;
 
   return (
     <div className="flex flex-col gap-3 bg-[#040704] border border-[#14532d] rounded-xs p-3 text-slate-200 select-none font-mono text-xs">
@@ -113,6 +122,40 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Active Predictive Collision Diagnostic Card (If Conflict Detected) */}
+      {activeConflict && otherAircraft && (
+        <div className="bg-[#180404] border border-red-600/80 p-2.5 rounded-xs flex flex-col gap-1.5 animate-pulse">
+          <div className="flex items-center justify-between">
+            <span className="text-red-400 font-bold flex items-center gap-1 text-[11px]">
+              <Flame className="w-3.5 h-3.5 text-red-400" />
+              STCA PREDICTIVE CONFLICT
+            </span>
+            <span className="text-[10px] bg-red-950 px-1 py-0.2 rounded border border-red-500 font-bold text-red-300">
+              T-{String(activeConflict.timeToClosestApproach).padStart(2, '0')}s CPA
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-1 text-[10px] bg-[#0c0202] p-1.5 rounded border border-red-900/60">
+            <div>
+              <span className="text-slate-500 block text-[9px]">TARGET INVOLVED</span>
+              <strong className="text-red-300">{otherAircraft.callsign} ({otherAircraft.model ?? 'AC'})</strong>
+            </div>
+            <div>
+              <span className="text-slate-500 block text-[9px]">MIN PREDICTED DIST</span>
+              <strong className="text-red-300">{activeConflict.predictedClosestDistance} PX</strong>
+            </div>
+            <div>
+              <span className="text-slate-500 block text-[9px]">ALT DIFF AT CPA</span>
+              <strong className="text-red-300">{activeConflict.altitudeDifference} FT</strong>
+            </div>
+            <div>
+              <span className="text-slate-500 block text-[9px]">RELATIVE SPEED</span>
+              <strong className="text-red-300">{activeConflict.relativeVelocity.relativeSpeed} KTS</strong>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Radar Flight Telemetry Matrix in Black, Green & Blue */}
       <div className="grid grid-cols-2 gap-1.5 text-[11px] bg-[#020502] border border-[#14532d] p-2 rounded-xs">

@@ -1,12 +1,37 @@
 import type { Aircraft, AirspaceDimensions, SimulationSettings } from '../types/aircraft';
-import { evaluateAirspaceRiskStatuses, stepAircraft } from './aircraft';
+import type {
+  AirspaceConflictSummary,
+  CollisionPrediction,
+  CollisionThresholds,
+} from '../types/collision';
+import { stepAircraft } from './aircraft';
+import {
+  DEFAULT_COLLISION_THRESHOLDS,
+  detectAirspaceCollisions,
+  deriveAircraftStatusMap,
+} from './collision';
 import { calculateVelocity } from './movement';
 import { calculatePredictedTrajectory } from './trajectory';
 
-export type SimulationTickListener = (aircraft: Aircraft[], simTimeSeconds: number) => void;
+export type SimulationTickListener = (
+  aircraft: Aircraft[],
+  simTimeSeconds: number,
+  conflictSummary: AirspaceConflictSummary
+) => void;
 
 export class SimulationEngine {
   private aircraft: Aircraft[] = [];
+  private thresholds: CollisionThresholds = { ...DEFAULT_COLLISION_THRESHOLDS };
+  private conflictSummary: AirspaceConflictSummary = {
+    totalPairsChecked: 0,
+    activeConflictsCount: 0,
+    criticalCount: 0,
+    highRiskCount: 0,
+    warningCount: 0,
+    highestRiskLevel: 'SAFE',
+    conflicts: [],
+  };
+
   private settings: SimulationSettings = {
     isRunning: true,
     simSpeed: 1,
@@ -34,13 +59,19 @@ export class SimulationEngine {
   private lastTimestamp: number = 0;
   private listeners: Set<SimulationTickListener> = new Set();
 
-  constructor(initialAircraft: Aircraft[] = []) {
+  constructor(
+    initialAircraft: Aircraft[] = [],
+    customThresholds?: Partial<CollisionThresholds>
+  ) {
     this.aircraft = [...initialAircraft];
+    if (customThresholds) {
+      this.thresholds = { ...DEFAULT_COLLISION_THRESHOLDS, ...customThresholds };
+    }
   }
 
   public subscribe(listener: SimulationTickListener): () => void {
     this.listeners.add(listener);
-    listener(this.aircraft, this.settings.simTimeSeconds);
+    listener(this.aircraft, this.settings.simTimeSeconds, this.conflictSummary);
     return () => {
       this.listeners.delete(listener);
     };
@@ -48,7 +79,7 @@ export class SimulationEngine {
 
   private notify() {
     for (const listener of this.listeners) {
-      listener(this.aircraft, this.settings.simTimeSeconds);
+      listener(this.aircraft, this.settings.simTimeSeconds, this.conflictSummary);
     }
   }
 
@@ -102,6 +133,7 @@ export class SimulationEngine {
         ),
       }));
     }
+    this.updateTick(0.001);
     this.notify();
     this.start();
   }
@@ -138,21 +170,49 @@ export class SimulationEngine {
       return updated;
     });
 
+    // Re-evaluate conflicts immediately upon manual clearance modification
+    this.conflictSummary = detectAirspaceCollisions(this.aircraft, this.thresholds);
+    const statusMap = deriveAircraftStatusMap(this.aircraft, this.conflictSummary.conflicts);
+    this.aircraft = this.aircraft.map((ac) => ({
+      ...ac,
+      status: statusMap.get(ac.id) || 'NORMAL',
+    }));
+
     this.notify();
   }
 
   public addAircraft(newAc: Aircraft) {
     this.aircraft = [...this.aircraft, newAc];
+    this.conflictSummary = detectAirspaceCollisions(this.aircraft, this.thresholds);
     this.notify();
   }
 
   public removeAircraft(id: string) {
     this.aircraft = this.aircraft.filter((ac) => ac.id !== id);
+    this.conflictSummary = detectAirspaceCollisions(this.aircraft, this.thresholds);
     this.notify();
   }
 
   public getAircraft(): Aircraft[] {
     return this.aircraft;
+  }
+
+  public getConflicts(): CollisionPrediction[] {
+    return this.conflictSummary.conflicts;
+  }
+
+  public getConflictSummary(): AirspaceConflictSummary {
+    return { ...this.conflictSummary };
+  }
+
+  public getThresholds(): CollisionThresholds {
+    return { ...this.thresholds };
+  }
+
+  public setThresholds(updates: Partial<CollisionThresholds>) {
+    this.thresholds = { ...this.thresholds, ...updates };
+    this.conflictSummary = detectAirspaceCollisions(this.aircraft, this.thresholds);
+    this.notify();
   }
 
   public getSettings(): SimulationSettings {
@@ -173,7 +233,7 @@ export class SimulationEngine {
     const elapsedMs = timestamp - (this.lastTimestamp || timestamp);
     this.lastTimestamp = timestamp;
 
-    // Convert to seconds, clamped between 0.001 and 0.1s to avoid physics explosions on lag spikes
+    // Convert to seconds, clamped between 0.001 and 0.1s to avoid physics lag spikes
     const deltaSeconds = Math.min(Math.max(elapsedMs / 1000, 0.001), 0.1);
 
     this.updateTick(deltaSeconds);
@@ -198,11 +258,13 @@ export class SimulationEngine {
       )
     );
 
-    // 2. Evaluate proximity risks
-    const riskMap = evaluateAirspaceRiskStatuses(updated);
+    // 2. Deterministic mathematical pairwise collision detection
+    this.conflictSummary = detectAirspaceCollisions(updated, this.thresholds);
+    const statusMap = deriveAircraftStatusMap(updated, this.conflictSummary.conflicts);
+
+    // 3. Assign dynamic risk statuses
     updated = updated.map((ac) => {
-      // If user hasn't forced a manual status, reflect radar risk assessment
-      const dynamicRisk = riskMap.get(ac.id) || 'NORMAL';
+      const dynamicRisk = statusMap.get(ac.id) || 'NORMAL';
       return {
         ...ac,
         status: dynamicRisk,

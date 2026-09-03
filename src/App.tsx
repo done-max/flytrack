@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SimulationEngine } from './simulation/simulationEngine';
 import { SCENARIOS } from './simulation/scenarios';
 import type { Aircraft, ScenarioDefinition, SimulationSettings } from './types/aircraft';
+import type { AirspaceConflictSummary } from './types/collision';
 import { TopNav } from './components/TopNav';
 import { Airspace } from './components/Airspace';
 import { ControlPanel } from './components/ControlPanel';
@@ -19,6 +20,16 @@ export const App: React.FC = () => {
 
   const [aircraftList, setAircraftList] = useState<Aircraft[]>(defaultScenario.aircraft);
   const [simTimeSeconds, setSimTimeSeconds] = useState<number>(0);
+  const [conflictSummary, setConflictSummary] = useState<AirspaceConflictSummary>({
+    totalPairsChecked: 0,
+    activeConflictsCount: 0,
+    criticalCount: 0,
+    highRiskCount: 0,
+    warningCount: 0,
+    highestRiskLevel: 'SAFE',
+    conflicts: [],
+  });
+
   const [selectedAircraftId, setSelectedAircraftId] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
 
@@ -40,9 +51,10 @@ export const App: React.FC = () => {
     const engine = new SimulationEngine(defaultScenario.aircraft);
     engineRef.current = engine;
 
-    const unsubscribe = engine.subscribe((newAircraft, time) => {
+    const unsubscribe = engine.subscribe((newAircraft, time, summary) => {
       setAircraftList(newAircraft);
       setSimTimeSeconds(time);
+      setConflictSummary(summary);
       setSettings(engine.getSettings());
     });
 
@@ -114,18 +126,27 @@ export const App: React.FC = () => {
   }, []);
 
   const selectedAircraft = aircraftList.find((ac) => ac.id === selectedAircraftId) || null;
+  const activeConflictForSelected = selectedAircraft
+    ? conflictSummary.conflicts.find(
+        (c) => c.aircraftA.id === selectedAircraft.id || c.aircraftB.id === selectedAircraft.id
+      ) || null
+    : null;
 
-  const bounds = engineRef.current ? engineRef.current.getBounds() : {
-    width: 1000,
-    height: 750,
-    minX: 0,
-    maxX: 1000,
-    minY: 0,
-    maxY: 750,
-  };
+  const bounds = engineRef.current
+    ? engineRef.current.getBounds()
+    : {
+        width: 1000,
+        height: 750,
+        minX: 0,
+        maxX: 1000,
+        minY: 0,
+        maxY: 750,
+      };
 
-  const criticalCount = aircraftList.filter((a) => a.status === 'CRITICAL').length;
-  const cautionCount = aircraftList.filter((a) => a.status === 'CAUTION' || a.status === 'HIGH_RISK').length;
+  const criticalConflicts = conflictSummary.conflicts.filter((c) => c.collisionRisk === 'CRITICAL');
+  const warningConflicts = conflictSummary.conflicts.filter(
+    (c) => c.collisionRisk === 'HIGH_RISK' || c.collisionRisk === 'WARNING'
+  );
 
   return (
     <div className="flex flex-col h-screen w-screen bg-[#000000] text-slate-200 overflow-hidden font-mono select-none">
@@ -179,20 +200,24 @@ export const App: React.FC = () => {
                 STCA SEPARATION SAFETY STATUS:
               </span>
 
-              {criticalCount > 0 ? (
+              {criticalConflicts.length > 0 ? (
                 <span className="flex items-center gap-1.5 text-red-300 font-bold bg-[#1a0505] px-2 py-0.5 rounded-xs border border-red-500 text-[11px] animate-pulse">
                   <AlertTriangle className="w-3 h-3 text-red-400" />
-                  STCA CONFLICT WARNING — LATERAL / VERTICAL LOSS OF SEPARATION
+                  STCA ALERT: {criticalConflicts[0].aircraftA.callsign} ⚡{' '}
+                  {criticalConflicts[0].aircraftB.callsign} — PREDICTED LOSS OF SEPARATION IN{' '}
+                  {criticalConflicts[0].timeToClosestApproach}s
                 </span>
-              ) : cautionCount > 0 ? (
+              ) : warningConflicts.length > 0 ? (
                 <span className="flex items-center gap-1.5 text-amber-300 font-semibold bg-[#1a1405] px-2 py-0.5 rounded-xs border border-amber-500 text-[11px]">
                   <AlertTriangle className="w-3 h-3 text-amber-400" />
-                  CONVERGING FLIGHT VECTORS — MONITORING SEPARATION
+                  CONVERGING TRAFFIC: {warningConflicts[0].aircraftA.callsign} &{' '}
+                  {warningConflicts[0].aircraftB.callsign} — CPA {warningConflicts[0].predictedClosestDistance}PX IN{' '}
+                  {warningConflicts[0].timeToClosestApproach}s
                 </span>
               ) : (
                 <span className="flex items-center gap-1.5 text-green-400 font-semibold bg-[#051805] px-2 py-0.5 rounded-xs border border-green-600 text-[11px]">
                   <CheckCircle className="w-3 h-3 text-green-400" />
-                  AIRWAYS NOMINAL — STANDARD 5 NM / 1,000 FT SEPARATION MAINTAINED
+                  AIRWAYS NOMINAL — STANDARD 5 NM / 1,000 FT SEPARATION MAINTAINED ({conflictSummary.totalPairsChecked} PAIRS MONITORED)
                 </span>
               )}
             </div>
@@ -223,6 +248,7 @@ export const App: React.FC = () => {
         <div className="w-84 flex flex-col gap-2 overflow-y-auto shrink-0 pl-0.5">
           <AircraftInfo
             aircraft={selectedAircraft}
+            activeConflict={activeConflictForSelected}
             onUpdateAircraft={handleUpdateAircraftDirect}
             onDeselect={() => setSelectedAircraftId(null)}
             onRemoveAircraft={handleRemoveAircraft}
