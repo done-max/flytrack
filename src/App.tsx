@@ -4,7 +4,7 @@ import { SCENARIOS } from './simulation/scenarios';
 import type { Aircraft, ScenarioDefinition, SimulationSettings } from './types/aircraft';
 import type { AirspaceConflictSummary, CollisionEvent } from './types/collision';
 import type { WeatherEvent, WeatherSummary, WeatherZone } from './types/weather';
-import type { DynamicAirspaceSector, RestrictedZone, UnifiedAircraftSafety } from './types/safety';
+import type { DynamicAirspaceSector, RestrictedZone, UnifiedAircraftSafety, AirspaceSectorData, AirspaceOverviewSummary } from './types/safety';
 import { TopNav } from './components/TopNav';
 import { Airspace } from './components/Airspace';
 import { ControlPanel } from './components/ControlPanel';
@@ -14,6 +14,7 @@ import { AddAircraftModal } from './components/AddAircraftModal';
 import { CollisionRiskMonitor } from './components/CollisionRiskMonitor';
 import { WeatherAnalyzer } from './components/WeatherAnalyzer';
 import { AIDecisionCenter } from './components/AIDecisionCenter';
+import { AirspaceOverview } from './components/AirspaceOverview';
 import { EventLog } from './components/EventLog';
 import { generateAIDecision } from './ai/decisionEngine';
 import { globalAIRiskModel } from './ai/model';
@@ -25,13 +26,14 @@ import {
   History,
   CloudLightning,
   Brain,
+  Globe,
 } from 'lucide-react';
 
 export const App: React.FC = () => {
-  // Scenario W2: Storm Ahead by default to showcase Phase 3 Weather + Conflict integration
+  // Phase 5 Dense Airspace Fleet by default
   const defaultScenario =
+    SCENARIOS.scenario_phase5_dense_airspace ||
     SCENARIOS.scenario_weather_storm_ahead ||
-    SCENARIOS.scenario_conflict ||
     SCENARIOS.scenario_safe;
   const [activeScenario, setActiveScenario] = useState<ScenarioDefinition>(defaultScenario);
 
@@ -66,6 +68,17 @@ export const App: React.FC = () => {
     new Map()
   );
   const [dynamicAirspaceSectors, setDynamicAirspaceSectors] = useState<DynamicAirspaceSector[]>([]);
+  const [airspaceSectors, setAirspaceSectors] = useState<AirspaceSectorData[]>([]);
+  const [airspaceOverview, setAirspaceOverview] = useState<AirspaceOverviewSummary>({
+    activeAircraftCount: 0,
+    activeConflictsCount: 0,
+    weatherWarningsCount: 0,
+    restrictedZonesCount: 0,
+    overallAirspaceRiskScore: 0,
+    overallAirspaceRiskLevel: 'SAFE',
+    trafficDensityRating: 'LOW',
+    sectors: [],
+  });
   const [collisionEvents, setCollisionEvents] = useState<CollisionEvent[]>([]);
   const [weatherEvents, setWeatherEvents] = useState<WeatherEvent[]>([]);
 
@@ -73,8 +86,8 @@ export const App: React.FC = () => {
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [rightPanelTab, setRightPanelTab] = useState<
-    'ai_decision' | 'weather' | 'risk_monitor' | 'inspector' | 'event_log'
-  >('ai_decision');
+    'overview' | 'ai_decision' | 'weather' | 'risk_monitor' | 'inspector' | 'event_log'
+  >('overview');
 
   const [settings, setSettings] = useState<SimulationSettings>({
     isRunning: true,
@@ -87,6 +100,7 @@ export const App: React.FC = () => {
     showSectorGrid: true,
     showWeatherOverlay: true,
     showAirspaceSafetyGrid: false,
+    showWaypoints: true,
     radarSweep: true,
     trajectoryPredictionSeconds: 60,
     maxTrailPoints: 40,
@@ -109,7 +123,9 @@ export const App: React.FC = () => {
         wSummary,
         uSafetyMap,
         sectors,
-        wEvents
+        wEvents,
+        atcSectors,
+        overview
       ) => {
         setAircraftList(newAircraft);
         setSimTimeSeconds(time);
@@ -119,6 +135,8 @@ export const App: React.FC = () => {
         setUnifiedSafetyMap(uSafetyMap);
         setDynamicAirspaceSectors(sectors);
         setWeatherEvents(wEvents);
+        if (atcSectors) setAirspaceSectors(atcSectors);
+        if (overview) setAirspaceOverview(overview);
         setWeatherZones(engine.getWeatherZones());
         setRestrictedZones(engine.getRestrictedZones());
         setSettings(engine.getSettings());
@@ -411,10 +429,22 @@ export const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Side: Multi-Panel Tactical Deck (AI / Weather / STCA / Inspector / Audit) */}
+        {/* Right Side: Multi-Panel Tactical Deck (Overview / AI / Weather / STCA / Inspector / Audit) */}
         <div className="w-96 flex flex-col gap-2.5 overflow-y-auto shrink-0 pl-0.5 z-10">
-          {/* iOS Liquid Glass Segmented 5-Tab Switcher */}
-          <div className="liquid-glass-subtle p-1 rounded-2xl grid grid-cols-5 gap-1 border border-white/10 shadow-lg">
+          {/* iOS Liquid Glass Segmented 6-Tab Switcher */}
+          <div className="liquid-glass-subtle p-1 rounded-2xl grid grid-cols-6 gap-1 border border-white/10 shadow-lg">
+            <button
+              onClick={() => setRightPanelTab('overview')}
+              className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-xl text-[10px] font-bold transition-all duration-200 cursor-pointer ${
+                rightPanelTab === 'overview'
+                  ? 'liquid-glass-active text-white shadow-md'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Globe className="w-3.5 h-3.5 text-sky-400" />
+              <span>Sectors</span>
+            </button>
+
             <button
               onClick={() => setRightPanelTab('ai_decision')}
               className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-xl text-[10px] font-bold transition-all duration-200 cursor-pointer ${
@@ -495,6 +525,20 @@ export const App: React.FC = () => {
           </div>
 
           {/* Tab Content Display */}
+          {rightPanelTab === 'overview' && (
+            <AirspaceOverview
+              overview={airspaceOverview}
+              sectors={airspaceSectors}
+              aircraft={aircraftList}
+              conflicts={conflictSummary.conflicts}
+              weatherSummary={weatherSummary}
+              weatherZones={weatherZones}
+              restrictedZones={restrictedZones}
+              selectedAircraftId={selectedAircraftId}
+              onSelectAircraft={(ac) => handleSelectAircraft(ac)}
+            />
+          )}
+
           {rightPanelTab === 'ai_decision' && (
             <AIDecisionCenter
               aircraft={selectedAircraft}

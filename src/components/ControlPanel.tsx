@@ -220,10 +220,24 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               {settings.showRangeRings ? 'ON' : 'OFF'}
             </span>
           </button>
+
+          <button
+            onClick={() => onUpdateSettings({ showWaypoints: !settings.showWaypoints })}
+            className={`flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-150 cursor-pointer border ${
+              settings.showWaypoints
+                ? 'liquid-glass-subtle text-white border-white/30 shadow-[0_0_10px_rgba(255,255,255,0.1)]'
+                : 'liquid-glass-subtle text-slate-400 border-white/5 hover:border-white/20'
+            }`}
+          >
+            <span className="text-[11px]">Flight Waypoints</span>
+            <span className={`text-[10px] font-mono font-bold ${settings.showWaypoints ? 'text-sky-300' : 'text-slate-500'}`}>
+              {settings.showWaypoints ? 'ON' : 'OFF'}
+            </span>
+          </button>
         </div>
       </div>
 
-      {/* Operational Test Scenarios (All Phase 2 & Phase 3 Scenarios) */}
+      {/* Operational Test Scenarios (All Phase 2, 3, 4 & 5 Scenarios) */}
       <div className="border-t border-white/10 pt-2.5">
         <label className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold block mb-1.5 font-mono">
           Airspace & Weather Scenarios ({Object.keys(SCENARIOS).length} Tests)
@@ -231,6 +245,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         <div className="flex flex-col gap-1.5 max-h-[260px] overflow-y-auto pr-0.5">
           {Object.values(SCENARIOS).map((scenario) => {
             const isSelected = activeScenarioId === scenario.id;
+            const isPhase5 = scenario.id.startsWith('scenario_phase5');
             const isWeatherScenario = scenario.id.startsWith('scenario_weather');
             const isConflict = scenario.id === 'scenario_conflict' || scenario.id === 'scenario_headon';
             const isSafe = scenario.id === 'scenario_safe' || scenario.id === 'scenario_altitude' || scenario.id === 'scenario_weather_clear';
@@ -249,7 +264,12 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                   <span className="text-xs font-bold text-white">
                     {scenario.name}
                   </span>
-                  {isWeatherScenario ? (
+                  {isPhase5 ? (
+                    <span className="flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 font-mono">
+                      <Zap className="w-2.5 h-2.5 text-cyan-400" />
+                      PHASE 5
+                    </span>
+                  ) : isWeatherScenario ? (
                     <span className="flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 font-mono">
                       <CloudLightning className="w-2.5 h-2.5 text-indigo-400" />
                       WX

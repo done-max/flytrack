@@ -14,6 +14,8 @@ import type {
   WeatherZone,
 } from '../types/weather';
 import type {
+  AirspaceOverviewSummary,
+  AirspaceSectorData,
   DynamicAirspaceSector,
   RestrictedZone,
   UnifiedAircraftSafety,
@@ -30,6 +32,7 @@ import { evaluateAirspaceWeather } from '../weather/weatherPrediction';
 import {
   evaluateUnifiedAirspaceSafety,
   generateDynamicAirspaceGrid,
+  evaluateAirspaceSectors,
 } from '../weather/airspaceSafety';
 
 export type SimulationTickListener = (
@@ -40,7 +43,9 @@ export type SimulationTickListener = (
   weatherSummary: WeatherSummary,
   unifiedSafetyMap: Map<string, UnifiedAircraftSafety>,
   dynamicAirspaceSectors: DynamicAirspaceSector[],
-  weatherEvents: WeatherEvent[]
+  weatherEvents: WeatherEvent[],
+  airspaceSectors: AirspaceSectorData[],
+  airspaceOverview: AirspaceOverviewSummary
 ) => void;
 
 export class SimulationEngine {
@@ -70,6 +75,17 @@ export class SimulationEngine {
 
   private unifiedSafetyMap: Map<string, UnifiedAircraftSafety> = new Map();
   private dynamicAirspaceSectors: DynamicAirspaceSector[] = [];
+  private airspaceSectors: AirspaceSectorData[] = [];
+  private airspaceOverview: AirspaceOverviewSummary = {
+    activeAircraftCount: 0,
+    activeConflictsCount: 0,
+    weatherWarningsCount: 0,
+    restrictedZonesCount: 0,
+    overallAirspaceRiskScore: 0,
+    overallAirspaceRiskLevel: 'SAFE',
+    trafficDensityRating: 'LOW',
+    sectors: [],
+  };
 
   private collisionEvents: CollisionEvent[] = [];
   private weatherEvents: WeatherEvent[] = [];
@@ -93,6 +109,7 @@ export class SimulationEngine {
     showSectorGrid: true,
     showWeatherOverlay: true,
     showAirspaceSafetyGrid: false,
+    showWaypoints: true,
     radarSweep: true,
     trajectoryPredictionSeconds: 60,
     maxTrailPoints: 40,
@@ -123,6 +140,8 @@ export class SimulationEngine {
     if (customThresholds) {
       this.thresholds = { ...DEFAULT_COLLISION_THRESHOLDS, ...customThresholds };
     }
+    // Initialize all safety, sectors, and conflict maps immediately
+    this.evaluateAirspaceState();
   }
 
   public subscribe(listener: SimulationTickListener): () => void {
@@ -135,7 +154,9 @@ export class SimulationEngine {
       this.weatherSummary,
       this.unifiedSafetyMap,
       this.dynamicAirspaceSectors,
-      this.weatherEvents
+      this.weatherEvents,
+      this.airspaceSectors,
+      this.airspaceOverview
     );
     return () => {
       this.listeners.delete(listener);
@@ -152,7 +173,9 @@ export class SimulationEngine {
         this.weatherSummary,
         this.unifiedSafetyMap,
         this.dynamicAirspaceSectors,
-        this.weatherEvents
+        this.weatherEvents,
+        this.airspaceSectors,
+        this.airspaceOverview
       );
     }
   }
@@ -333,6 +356,14 @@ export class SimulationEngine {
     return [...this.dynamicAirspaceSectors];
   }
 
+  public getAirspaceSectors(): AirspaceSectorData[] {
+    return [...this.airspaceSectors];
+  }
+
+  public getAirspaceOverview(): AirspaceOverviewSummary {
+    return { ...this.airspaceOverview };
+  }
+
   public getCollisionEvents(): CollisionEvent[] {
     return [...this.collisionEvents];
   }
@@ -460,6 +491,17 @@ export class SimulationEngine {
       this.conflictSummary.conflicts,
       this.aircraft
     );
+
+    // 6. Compute realistic ATC airspace sectors and traffic density overview
+    const sectorEval = evaluateAirspaceSectors(
+      this.aircraft,
+      this.weatherZones,
+      this.restrictedZones,
+      this.conflictSummary.conflicts,
+      this.bounds
+    );
+    this.airspaceSectors = sectorEval.sectors;
+    this.airspaceOverview = sectorEval.overview;
   }
 
   private processConflictEvents(currentConflicts: CollisionPrediction[]) {

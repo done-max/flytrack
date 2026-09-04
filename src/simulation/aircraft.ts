@@ -1,4 +1,4 @@
-import type { Aircraft, AircraftStatus, AirspaceDimensions, RoutePoint } from '../types/aircraft';
+import type { Aircraft, AircraftStatus, AirspaceDimensions, RoutePoint, Waypoint } from '../types/aircraft';
 import { calculateVelocity, updateAircraftPosition } from './movement';
 import { calculateClosestPointOfApproach, calculatePredictedTrajectory } from './trajectory';
 
@@ -19,6 +19,8 @@ export function createAircraft(params: {
   squawk?: string;
   origin?: string;
   destination?: string;
+  route?: Waypoint[];
+  currentWaypointIndex?: number;
 }): Aircraft {
   const velocity = calculateVelocity(params.speed, params.heading);
   const baseAircraft: Aircraft = {
@@ -47,6 +49,8 @@ export function createAircraft(params: {
     origin: params.origin ?? 'BOS',
     destination: params.destination ?? 'SFO',
     verticalSpeed: 0,
+    route: params.route,
+    currentWaypointIndex: params.currentWaypointIndex ?? 0,
   };
 
   // Pre-calculate initial trajectory
@@ -177,6 +181,7 @@ export function stepAircraft(
     altitude: movement.altitude,
     velocity: movement.velocity,
     heading: movement.heading,
+    currentWaypointIndex: movement.currentWaypointIndex,
     routeHistory: updatedHistory,
     predictedTrajectory: [],
   };

@@ -44,3 +44,33 @@ export interface DynamicAirspaceSector {
   hasTrafficHazard: boolean;
   isRestricted: boolean;
 }
+
+export type TrafficDensityLevel = 'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL';
+
+export interface AirspaceSectorData {
+  id: string;
+  code: string; // e.g. "SEC-01", "SEC-02"
+  name: string; // e.g. "Northwest Sector Alpha"
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  aircraftIds: string[];
+  aircraftCount: number;
+  densityLevel: TrafficDensityLevel;
+  weatherStatus: 'CLEAR' | 'MODERATE' | 'SEVERE';
+  riskLevel: AirspaceZoneStatus;
+  isRestricted: boolean;
+  activeConflictsCount: number;
+}
+
+export interface AirspaceOverviewSummary {
+  activeAircraftCount: number;
+  activeConflictsCount: number;
+  weatherWarningsCount: number;
+  restrictedZonesCount: number;
+  overallAirspaceRiskScore: number; // 0 to 100
+  overallAirspaceRiskLevel: OverallSafetyLevel;
+  trafficDensityRating: TrafficDensityLevel;
+  sectors: AirspaceSectorData[];
+}

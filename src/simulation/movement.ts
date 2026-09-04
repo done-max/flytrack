@@ -35,7 +35,45 @@ export function normalizeHeading(heading: number): number {
 }
 
 /**
- * Advances an aircraft's position, altitude, and velocity based on elapsed delta time.
+ * Calculates bearing in degrees (0-359) from current position to a target waypoint.
+ * Screen coordinates: 0 is North (-Y), 90 is East (+X), 180 is South (+Y), 270 is West (-X).
+ */
+export function calculateBearingToPoint(
+  fromX: number,
+  fromY: number,
+  toX: number,
+  toY: number
+): number {
+  const dx = toX - fromX;
+  const dy = toY - fromY;
+  const rad = Math.atan2(dx, -dy);
+  let deg = (rad * 180) / Math.PI;
+  if (deg < 0) deg += 360;
+  return deg;
+}
+
+/**
+ * Smoothly interpolates heading towards target heading using standard turn rate (e.g. 3-6 deg/s).
+ */
+export function smoothTurnTowardsHeading(
+  currentHeading: number,
+  targetHeading: number,
+  turnRateDegPerSec: number,
+  effectiveDeltaSeconds: number
+): number {
+  const diff = ((targetHeading - currentHeading + 540) % 360) - 180;
+  const maxTurn = turnRateDegPerSec * effectiveDeltaSeconds;
+
+  if (Math.abs(diff) <= maxTurn) {
+    return normalizeHeading(targetHeading);
+  }
+
+  const newHeading = currentHeading + Math.sign(diff) * maxTurn;
+  return normalizeHeading(newHeading);
+}
+
+/**
+ * Advances an aircraft's position, altitude, velocity, and waypoint route based on elapsed delta time.
  * 
  * @param aircraft The aircraft to update
  * @param deltaSeconds Time elapsed in seconds
@@ -47,11 +85,48 @@ export function updateAircraftPosition(
   deltaSeconds: number,
   simSpeed: number,
   bounds: AirspaceDimensions
-): { x: number; y: number; altitude: number; velocity: Velocity; heading: number } {
+): {
+  x: number;
+  y: number;
+  altitude: number;
+  velocity: Velocity;
+  heading: number;
+  currentWaypointIndex?: number;
+} {
   const effectiveDelta = deltaSeconds * simSpeed;
-  const velocity = calculateVelocity(aircraft.speed, aircraft.heading);
 
-  // Position displacement
+  let currentHeading = aircraft.heading;
+  let currentWaypointIndex = aircraft.currentWaypointIndex ?? 0;
+
+  // 1. Waypoint Navigation Steering (if route is assigned)
+  if (aircraft.route && aircraft.route.length > 0) {
+    const activeIndex = currentWaypointIndex % aircraft.route.length;
+    const targetWp = aircraft.route[activeIndex];
+
+    const dx = targetWp.x - aircraft.x;
+    const dy = targetWp.y - aircraft.y;
+    const distToWp = Math.sqrt(dx * dx + dy * dy);
+
+    // Waypoint reached within 25px threshold -> advance to next waypoint
+    if (distToWp <= 25) {
+      currentWaypointIndex = (activeIndex + 1) % aircraft.route.length;
+    }
+
+    const currentTargetWp = aircraft.route[currentWaypointIndex % aircraft.route.length];
+    const desiredHeading = calculateBearingToPoint(
+      aircraft.x,
+      aircraft.y,
+      currentTargetWp.x,
+      currentTargetWp.y
+    );
+
+    // Smooth turn towards waypoint at 4 deg/sec
+    currentHeading = smoothTurnTowardsHeading(currentHeading, desiredHeading, 4, effectiveDelta);
+  }
+
+  const velocity = calculateVelocity(aircraft.speed, currentHeading);
+
+  // 2. Position displacement
   let newX = aircraft.x + velocity.vx * effectiveDelta * SPEED_SCALE_FACTOR;
   let newY = aircraft.y + velocity.vy * effectiveDelta * SPEED_SCALE_FACTOR;
 
@@ -70,7 +145,7 @@ export function updateAircraftPosition(
     newY = bounds.maxY + margin - (bounds.minY - margin - newY);
   }
 
-  // Smooth altitude transition if targetAltitude is set
+  // 3. Smooth altitude transition if targetAltitude is set
   let newAltitude = aircraft.altitude;
   if (aircraft.targetAltitude !== undefined && aircraft.targetAltitude !== aircraft.altitude) {
     const diff = aircraft.targetAltitude - aircraft.altitude;
@@ -89,6 +164,7 @@ export function updateAircraftPosition(
     y: newY,
     altitude: Math.round(newAltitude),
     velocity,
-    heading: normalizeHeading(aircraft.heading),
+    heading: normalizeHeading(currentHeading),
+    currentWaypointIndex,
   };
 }

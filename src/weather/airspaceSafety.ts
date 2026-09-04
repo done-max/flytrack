@@ -6,9 +6,12 @@ import type {
   WeatherZone,
 } from '../types/weather';
 import type {
+  AirspaceOverviewSummary,
+  AirspaceSectorData,
   DynamicAirspaceSector,
   OverallSafetyLevel,
   RestrictedZone,
+  TrafficDensityLevel,
   UnifiedAircraftSafety,
 } from '../types/safety';
 
@@ -231,4 +234,172 @@ export function generateDynamicAirspaceGrid(
   }
 
   return sectors;
+}
+
+export interface SectorDefinition {
+  id: string;
+  code: string;
+  name: string;
+  minXFrac: number;
+  maxXFrac: number;
+  minYFrac: number;
+  maxYFrac: number;
+}
+
+export const ATC_SECTOR_DEFS: SectorDefinition[] = [
+  { id: 'sec_nw', code: 'SEC-01', name: 'Northwest Airway Corridor', minXFrac: 0, maxXFrac: 0.333, minYFrac: 0, maxYFrac: 0.5 },
+  { id: 'sec_nc', code: 'SEC-02', name: 'North Central Corridor', minXFrac: 0.333, maxXFrac: 0.666, minYFrac: 0, maxYFrac: 0.5 },
+  { id: 'sec_ne', code: 'SEC-03', name: 'Northeast Terminal Approach', minXFrac: 0.666, maxXFrac: 1.0, minYFrac: 0, maxYFrac: 0.5 },
+  { id: 'sec_sw', code: 'SEC-04', name: 'Southwest Transit Sector', minXFrac: 0, maxXFrac: 0.333, minYFrac: 0.5, maxYFrac: 1.0 },
+  { id: 'sec_sc', code: 'SEC-05', name: 'Central Terminal Control Area (TMA)', minXFrac: 0.333, maxXFrac: 0.666, minYFrac: 0.5, maxYFrac: 1.0 },
+  { id: 'sec_se', code: 'SEC-06', name: 'Southeast En-Route Sector', minXFrac: 0.666, maxXFrac: 1.0, minYFrac: 0.5, maxYFrac: 1.0 },
+];
+
+/**
+ * Evaluates the 6 realistic ATC airspace sectors for traffic density, weather, risk, and restricted zones
+ */
+export function evaluateAirspaceSectors(
+  aircraftList: Aircraft[],
+  weatherZones: WeatherZone[] = [],
+  restrictedZones: RestrictedZone[] = [],
+  conflicts: CollisionPrediction[] = [],
+  bounds: { width: number; height: number } = { width: 1000, height: 750 }
+): { sectors: AirspaceSectorData[]; overview: AirspaceOverviewSummary } {
+  const sectors: AirspaceSectorData[] = [];
+  let totalConflicts = conflicts.length;
+  let activeWeatherCount = weatherZones.filter((w) => w.isActive).length;
+
+  for (const def of ATC_SECTOR_DEFS) {
+    const minX = def.minXFrac * bounds.width;
+    const maxX = def.maxXFrac * bounds.width;
+    const minY = def.minYFrac * bounds.height;
+    const maxY = def.maxYFrac * bounds.height;
+    const width = maxX - minX;
+    const height = maxY - minY;
+    const centerX = minX + width / 2;
+    const centerY = minY + height / 2;
+
+    // Aircraft in this sector
+    const sectorAircraft = aircraftList.filter(
+      (ac) => ac.x >= minX && ac.x < maxX && ac.y >= minY && ac.y < maxY
+    );
+    const aircraftIds = sectorAircraft.map((ac) => ac.id);
+    const count = sectorAircraft.length;
+
+    // Density level calculation
+    let densityLevel: TrafficDensityLevel = 'LOW';
+    if (count >= 5) densityLevel = 'CRITICAL';
+    else if (count >= 3) densityLevel = 'HIGH';
+    else if (count >= 2) densityLevel = 'MODERATE';
+
+    // Sector restricted check
+    let isRestricted = false;
+    for (const rz of restrictedZones) {
+      const dx = Math.max(0, Math.abs(centerX - rz.center.x) - width / 2);
+      const dy = Math.max(0, Math.abs(centerY - rz.center.y) - height / 2);
+      if (Math.sqrt(dx * dx + dy * dy) <= rz.radius) {
+        isRestricted = true;
+        break;
+      }
+    }
+
+    // Sector weather status
+    let weatherStatus: 'CLEAR' | 'MODERATE' | 'SEVERE' = 'CLEAR';
+    for (const wz of weatherZones) {
+      if (!wz.isActive) continue;
+      const dx = Math.max(0, Math.abs(centerX - wz.center.x) - width / 2);
+      const dy = Math.max(0, Math.abs(centerY - wz.center.y) - height / 2);
+      if (Math.sqrt(dx * dx + dy * dy) <= wz.radius) {
+        if (wz.severity === 'CRITICAL' || wz.type === 'THUNDERSTORM') {
+          weatherStatus = 'SEVERE';
+        } else if (weatherStatus !== 'SEVERE') {
+          weatherStatus = 'MODERATE';
+        }
+      }
+    }
+
+    // Sector active conflicts
+    const sectorConflicts = conflicts.filter((c) =>
+      aircraftIds.includes(c.aircraftA.id) || aircraftIds.includes(c.aircraftB.id)
+    );
+
+    // Sector risk level
+    let riskLevel: AirspaceSectorData['riskLevel'] = 'SAFE';
+    if (isRestricted) {
+      riskLevel = 'RESTRICTED';
+    } else if (
+      sectorConflicts.some((c) => c.collisionRisk === 'CRITICAL') ||
+      weatherStatus === 'SEVERE'
+    ) {
+      riskLevel = 'DANGER';
+    } else if (
+      sectorConflicts.some((c) => c.collisionRisk === 'HIGH_RISK') ||
+      densityLevel === 'CRITICAL'
+    ) {
+      riskLevel = 'HIGH_RISK';
+    } else if (
+      sectorConflicts.some((c) => c.collisionRisk === 'WARNING') ||
+      weatherStatus === 'MODERATE' ||
+      densityLevel === 'HIGH'
+    ) {
+      riskLevel = 'CAUTION';
+    }
+
+    sectors.push({
+      id: def.id,
+      code: def.code,
+      name: def.name,
+      x: minX,
+      y: minY,
+      width,
+      height,
+      aircraftIds,
+      aircraftCount: count,
+      densityLevel,
+      weatherStatus,
+      riskLevel,
+      isRestricted,
+      activeConflictsCount: sectorConflicts.length,
+    });
+  }
+
+  // Global Airspace Risk Score (0-100) and traffic density rating
+  const fleetCount = aircraftList.length;
+  let globalDensityRating: TrafficDensityLevel = 'LOW';
+  if (fleetCount >= 9) globalDensityRating = 'CRITICAL';
+  else if (fleetCount >= 6) globalDensityRating = 'HIGH';
+  else if (fleetCount >= 3) globalDensityRating = 'MODERATE';
+
+  let riskScore = 10;
+  if (totalConflicts > 0) {
+    const hasCritical = conflicts.some((c) => c.collisionRisk === 'CRITICAL');
+    const hasHigh = conflicts.some((c) => c.collisionRisk === 'HIGH_RISK');
+    riskScore += hasCritical ? 60 : hasHigh ? 40 : 20;
+  }
+  if (activeWeatherCount > 0) {
+    riskScore += activeWeatherCount * 12;
+  }
+  if (globalDensityRating === 'CRITICAL') riskScore += 20;
+  else if (globalDensityRating === 'HIGH') riskScore += 10;
+
+  riskScore = Math.min(100, Math.max(0, Math.round(riskScore)));
+
+  let overallAirspaceRiskLevel: OverallSafetyLevel = 'SAFE';
+  if (riskScore >= 75) overallAirspaceRiskLevel = 'CRITICAL';
+  else if (riskScore >= 55) overallAirspaceRiskLevel = 'HIGH_RISK';
+  else if (riskScore >= 35) overallAirspaceRiskLevel = 'WARNING';
+  else if (riskScore >= 20) overallAirspaceRiskLevel = 'CAUTION';
+
+  const overview: AirspaceOverviewSummary = {
+    activeAircraftCount: fleetCount,
+    activeConflictsCount: totalConflicts,
+    weatherWarningsCount: activeWeatherCount,
+    restrictedZonesCount: restrictedZones.length,
+    overallAirspaceRiskScore: riskScore,
+    overallAirspaceRiskLevel,
+    trafficDensityRating: globalDensityRating,
+    sectors,
+  };
+
+  return { sectors, overview };
 }

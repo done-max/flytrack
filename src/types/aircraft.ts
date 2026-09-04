@@ -28,6 +28,15 @@ export interface TrajectoryPoint {
   altitude: number;
 }
 
+export interface Waypoint {
+  id: string;
+  name: string; // e.g. "ALFA", "BRAVO", "MERIT", "GREKI"
+  x: number;
+  y: number;
+  altitude?: number;
+  speed?: number;
+}
+
 export interface Aircraft {
   id: string;
   callsign: string;
@@ -46,6 +55,8 @@ export interface Aircraft {
   origin?: string; // e.g. "JFK"
   destination?: string; // e.g. "LHR"
   verticalSpeed?: number; // feet per minute (+ climb, - descent)
+  route?: Waypoint[]; // Waypoint navigation flight plan
+  currentWaypointIndex?: number; // Index of next target waypoint in route
 }
 
 export interface AirspaceDimensions {
@@ -68,6 +79,7 @@ export interface SimulationSettings {
   showSectorGrid: boolean;
   showWeatherOverlay: boolean;
   showAirspaceSafetyGrid: boolean;
+  showWaypoints: boolean;
   radarSweep: boolean;
   trajectoryPredictionSeconds: number; // e.g. 60 or 120
   maxTrailPoints: number;

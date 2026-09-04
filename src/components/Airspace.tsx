@@ -180,6 +180,65 @@ export const Airspace: React.FC<AirspaceProps> = ({
           </g>
         )}
 
+        {/* Layer 4.5: Active Waypoint Flight Routes & Navigation Fixes */}
+        {settings.showWaypoints && (
+          <g className="flight-waypoints-layer select-none pointer-events-none font-mono">
+            {aircraft.map((ac) => {
+              if (!ac.route || ac.route.length === 0) return null;
+              const isSelected = ac.id === selectedAircraftId;
+              const strokeColor = isSelected ? '#38bdf8' : 'rgba(56, 189, 248, 0.35)';
+
+              return (
+                <g key={`route-${ac.id}`}>
+                  {/* Waypoint connector segments */}
+                  {ac.route.map((wp, idx) => {
+                    const prevX = idx === 0 ? ac.x : ac.route![idx - 1].x;
+                    const prevY = idx === 0 ? ac.y : ac.route![idx - 1].y;
+                    return (
+                      <line
+                        key={`seg-${ac.id}-${wp.id}`}
+                        x1={prevX}
+                        y1={prevY}
+                        x2={wp.x}
+                        y2={wp.y}
+                        stroke={strokeColor}
+                        strokeWidth={isSelected ? 1.2 : 0.75}
+                        strokeDasharray="4 3"
+                        strokeOpacity={isSelected ? 0.9 : 0.4}
+                      />
+                    );
+                  })}
+
+                  {/* Waypoint diamond fix symbols */}
+                  {ac.route.map((wp, idx) => {
+                    const isNextWp = ac.currentWaypointIndex === idx;
+                    return (
+                      <g key={`wp-${ac.id}-${wp.id}`} transform={`translate(${wp.x}, ${wp.y})`}>
+                        <polygon
+                          points="0,-4.5 4.5,0 0,4.5 -4.5,0"
+                          fill={isNextWp ? 'rgba(56, 189, 248, 0.25)' : 'none'}
+                          stroke={isNextWp ? '#38bdf8' : 'rgba(148, 163, 184, 0.6)'}
+                          strokeWidth={isNextWp ? 1.4 : 0.9}
+                        />
+                        <text
+                          x="6"
+                          y="3"
+                          fill={isNextWp ? '#38bdf8' : 'rgba(148, 163, 184, 0.7)'}
+                          fontSize="7.5"
+                          fontWeight={isNextWp ? 'bold' : 'normal'}
+                          letterSpacing="0.4"
+                        >
+                          {wp.name}
+                        </text>
+                      </g>
+                    );
+                  })}
+                </g>
+              );
+            })}
+          </g>
+        )}
+
         {/* Layer 5: Projected Trajectories & Prediction Markers */}
         {settings.showTrajectories && (
           <g className="trajectories-layer">
