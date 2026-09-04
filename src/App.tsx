@@ -192,6 +192,7 @@ export const App: React.FC = () => {
         <div className="flex-1 flex flex-col min-w-0 h-full relative z-10">
           <Airspace
             aircraft={aircraftList}
+            conflicts={conflictSummary.conflicts}
             selectedAircraftId={selectedAircraftId}
             settings={settings}
             bounds={bounds}

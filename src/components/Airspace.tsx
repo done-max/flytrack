@@ -1,13 +1,16 @@
 import React, { useRef, useState } from 'react';
 import type { Aircraft, AirspaceDimensions, SimulationSettings } from '../types/aircraft';
+import type { CollisionPrediction } from '../types/collision';
 import { RadarGrid } from './RadarGrid';
 import { FlightTrail } from './FlightTrail';
 import { TrajectoryLine } from './TrajectoryLine';
+import { ConflictZoneLayer } from './ConflictZoneLayer';
 import { AircraftMarker } from './AircraftMarker';
-import { ZoomIn, ZoomOut, RotateCcw, Compass, Crosshair } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCcw, Compass, Crosshair, AlertTriangle } from 'lucide-react';
 
 interface AirspaceProps {
   aircraft: Aircraft[];
+  conflicts?: CollisionPrediction[];
   selectedAircraftId: string | null;
   settings: SimulationSettings;
   bounds: AirspaceDimensions;
@@ -16,6 +19,7 @@ interface AirspaceProps {
 
 export const Airspace: React.FC<AirspaceProps> = ({
   aircraft,
+  conflicts = [],
   selectedAircraftId,
   settings,
   bounds,
@@ -82,10 +86,12 @@ export const Airspace: React.FC<AirspaceProps> = ({
     }
   };
 
+  const topCriticalConflict = conflicts.find((c) => c.collisionRisk === 'CRITICAL') || conflicts[0];
+
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full bg-[#020503]/90 overflow-hidden select-none cursor-crosshair rounded-3xl border border-white/10 shadow-[0_16px_48px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.15)] backdrop-blur-xl"
+      className="relative w-full h-full bg-[#05080e]/95 overflow-hidden select-none cursor-crosshair rounded-3xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.15)] backdrop-blur-xl"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -129,7 +135,7 @@ export const Airspace: React.FC<AirspaceProps> = ({
           </g>
         )}
 
-        {/* Layer 3: Projected Trajectories */}
+        {/* Layer 3: Projected Trajectories & Prediction Markers */}
         {settings.showTrajectories && (
           <g className="trajectories-layer">
             {aircraft.map((ac) => (
@@ -145,7 +151,10 @@ export const Airspace: React.FC<AirspaceProps> = ({
           </g>
         )}
 
-        {/* Layer 4: SSR Aircraft Radar Targets & Full Data Blocks */}
+        {/* Layer 4: Mathematical Conflict Points & Predicted Danger Regions */}
+        <ConflictZoneLayer conflicts={conflicts} />
+
+        {/* Layer 5: SSR Aircraft Radar Targets & Full Data Blocks */}
         <g className="aircraft-layer">
           {aircraft.map((ac) => (
             <AircraftMarker
@@ -159,53 +168,65 @@ export const Airspace: React.FC<AirspaceProps> = ({
         </g>
       </svg>
 
+      {/* Floating Top Center Conflict Alert Pill (When Conflict Detected) */}
+      {topCriticalConflict && (
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
+          <div className="liquid-glass-red px-4 py-1.5 rounded-full flex items-center gap-2 text-xs font-mono text-red-100 font-bold shadow-2xl animate-pulse">
+            <AlertTriangle className="w-3.5 h-3.5 text-red-300" />
+            <span>
+              CONFLICT DETECTED: {topCriticalConflict.aircraftA.callsign} & {topCriticalConflict.aircraftB.callsign} (T-{topCriticalConflict.timeToClosestApproach}s CPA)
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Floating iOS Glass Control Toolbar (Top Right) */}
       <div className="absolute top-3 right-3 z-20 flex items-center gap-2">
         <div className="flex items-center liquid-glass px-1.5 py-1 rounded-2xl shadow-xl">
           <button
             onClick={() => handleZoom(1.15)}
             title="Zoom In"
-            className="p-1.5 text-slate-300 hover:text-green-300 hover:bg-white/10 rounded-xl transition-all duration-150 active:scale-90"
+            className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-150 active:scale-90"
           >
             <ZoomIn className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => handleZoom(0.85)}
             title="Zoom Out"
-            className="p-1.5 text-slate-300 hover:text-green-300 hover:bg-white/10 rounded-xl transition-all duration-150 active:scale-90"
+            className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-150 active:scale-90"
           >
             <ZoomOut className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={handleResetView}
             title="Reset Scope View"
-            className="p-1.5 text-slate-300 hover:text-green-300 hover:bg-white/10 rounded-xl transition-all duration-150 active:scale-90"
+            className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-150 active:scale-90"
           >
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        <div className="liquid-glass px-3 py-1.5 rounded-2xl text-[11px] font-mono text-emerald-300 flex items-center gap-1.5 shadow-xl">
-          <Compass className="w-3.5 h-3.5 text-emerald-400" />
+        <div className="liquid-glass px-3 py-1.5 rounded-2xl text-[11px] font-mono text-slate-200 flex items-center gap-1.5 shadow-xl">
+          <Compass className="w-3.5 h-3.5 text-sky-400" />
           <span>MAG 000°</span>
         </div>
       </div>
 
       {/* Floating iOS Glass Scope Telemetry Footer (Bottom Left) */}
       <div className="absolute bottom-3 left-3 z-20 flex items-center gap-2.5 liquid-glass px-3.5 py-1.5 rounded-2xl text-[11px] font-mono text-slate-300 shadow-xl">
-        <div className="flex items-center gap-1 text-emerald-400">
+        <div className="flex items-center gap-1 text-sky-400">
           <Crosshair className="w-3.5 h-3.5" />
           <span className="font-sans font-medium text-[10px] text-slate-400">CURSOR</span>
         </div>
         <span>
-          X: <strong className="text-emerald-300 font-semibold">{cursorPos ? cursorPos.x : '---'}</strong>
+          X: <strong className="text-white font-semibold">{cursorPos ? cursorPos.x : '---'}</strong>
         </span>
         <span>
-          Y: <strong className="text-emerald-300 font-semibold">{cursorPos ? cursorPos.y : '---'}</strong>
+          Y: <strong className="text-white font-semibold">{cursorPos ? cursorPos.y : '---'}</strong>
         </span>
         <span className="text-white/20">|</span>
         <span>
-          ZOOM: <strong className="text-emerald-300 font-semibold">{Math.round(zoom * 100)}%</strong>
+          ZOOM: <strong className="text-white font-semibold">{Math.round(zoom * 100)}%</strong>
         </span>
       </div>
     </div>
