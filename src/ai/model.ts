@@ -150,12 +150,19 @@ export class AirspaceRiskModel {
       calculatedScore += (categoryWeights[cat as AIRiskCategory] || 0) * prob;
     }
 
-    // Direct penalty amplification for imminent safety hazards
+    // Direct penalty amplification for safety hazard thresholds
     if (features.predictedClosestSeparation < 30 && features.timeToClosestApproach <= 30 && features.altitudeDifference < 1000) {
       calculatedScore = Math.max(calculatedScore, 85);
+    } else if (features.predictedClosestSeparation < 55 && features.timeToClosestApproach <= 60 && features.altitudeDifference < 1000) {
+      calculatedScore = Math.max(calculatedScore, 68);
+    } else if (features.predictedClosestSeparation < 90 && features.timeToClosestApproach <= 90 && features.altitudeDifference < 1000) {
+      calculatedScore = Math.max(calculatedScore, 45);
     }
-    if (features.weatherSeverity === 4 && features.timeToWeatherEntry <= 30) {
+
+    if (features.weatherSeverity === 4 && (features.timeToWeatherEntry <= 30 || features.distanceToWeather <= 20)) {
       calculatedScore = Math.max(calculatedScore, 85);
+    } else if (features.weatherSeverity >= 3 && features.timeToWeatherEntry <= 60) {
+      calculatedScore = Math.max(calculatedScore, 65);
     }
 
     const roundedScore = Math.min(100, Math.max(0, Math.round(calculatedScore)));

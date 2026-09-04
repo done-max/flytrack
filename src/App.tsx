@@ -16,6 +16,9 @@ import { WeatherAnalyzer } from './components/WeatherAnalyzer';
 import { AIDecisionCenter } from './components/AIDecisionCenter';
 import { AirspaceOverview } from './components/AirspaceOverview';
 import { EventLog } from './components/EventLog';
+import { DemoController, DEMO_STAGES } from './components/DemoController';
+import { DebugPanel } from './components/DebugPanel';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { generateAIDecision } from './ai/decisionEngine';
 import { globalAIRiskModel } from './ai/model';
 import {
@@ -30,10 +33,10 @@ import {
 } from 'lucide-react';
 
 export const App: React.FC = () => {
-  // Phase 5 Dense Airspace Fleet by default
+  // Phase 6 Demo Scenario or Phase 5 Dense Airspace Fleet by default
   const defaultScenario =
+    SCENARIOS.scenario_phase6_demo ||
     SCENARIOS.scenario_phase5_dense_airspace ||
-    SCENARIOS.scenario_weather_storm_ahead ||
     SCENARIOS.scenario_safe;
   const [activeScenario, setActiveScenario] = useState<ScenarioDefinition>(defaultScenario);
 
@@ -43,6 +46,15 @@ export const App: React.FC = () => {
   const [weatherZones, setWeatherZones] = useState<WeatherZone[]>(defaultScenario.weatherZones || []);
   const [restrictedZones, setRestrictedZones] = useState<RestrictedZone[]>(defaultScenario.restrictedZones || []);
   const [simTimeSeconds, setSimTimeSeconds] = useState<number>(0);
+
+  // Demo Mode State Machine
+  const [isDemoMode, setIsDemoMode] = useState<boolean>(true);
+  const [demoStageIndex, setDemoStageIndex] = useState<number>(0);
+  const [demoAutoPlay, setDemoAutoPlay] = useState<boolean>(true);
+  const [hasExecutedAvoidance, setHasExecutedAvoidance] = useState<boolean>(false);
+
+  // Debug Panel HUD State
+  const [isDebugOpen, setIsDebugOpen] = useState<boolean>(false);
 
   const [conflictSummary, setConflictSummary] = useState<AirspaceConflictSummary>({
     totalPairsChecked: 0,
@@ -82,7 +94,7 @@ export const App: React.FC = () => {
   const [collisionEvents, setCollisionEvents] = useState<CollisionEvent[]>([]);
   const [weatherEvents, setWeatherEvents] = useState<WeatherEvent[]>([]);
 
-  const [selectedAircraftId, setSelectedAircraftId] = useState<string | null>(null);
+  const [selectedAircraftId, setSelectedAircraftId] = useState<string | null>('AC_DEMO_1');
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [rightPanelTab, setRightPanelTab] = useState<
@@ -268,6 +280,128 @@ export const App: React.FC = () => {
     [aircraftList]
   );
 
+  // Calculate dynamic overall Airspace Status
+  const calculateAirspaceStatus = (): 'SAFE' | 'CAUTION' | 'HIGH RISK' | 'CRITICAL' => {
+    if (conflictSummary.criticalCount > 0 || weatherSummary.highestWeatherRisk === 'CRITICAL') {
+      return 'CRITICAL';
+    }
+    if (conflictSummary.highRiskCount > 0 || weatherSummary.highestWeatherRisk === 'HIGH') {
+      return 'HIGH RISK';
+    }
+    if (
+      conflictSummary.warningCount > 0 ||
+      weatherSummary.highestWeatherRisk === 'MODERATE' ||
+      airspaceOverview.overallAirspaceRiskScore >= 40
+    ) {
+      return 'CAUTION';
+    }
+    return 'SAFE';
+  };
+
+  const airspaceStatus = calculateAirspaceStatus();
+
+  // Automatic Demo Mode Progression
+  useEffect(() => {
+    if (!isDemoMode || !demoAutoPlay) return;
+
+    let targetStage = 0;
+    for (let i = DEMO_STAGES.length - 1; i >= 0; i--) {
+      if (simTimeSeconds >= DEMO_STAGES[i].triggerTimeSeconds) {
+        targetStage = i;
+        break;
+      }
+    }
+
+    if (targetStage !== demoStageIndex) {
+      setDemoStageIndex(targetStage);
+      if (targetStage === 4 || targetStage === 5) {
+        setSelectedAircraftId('AC_DEMO_1');
+        setRightPanelTab('ai_decision');
+      } else if (targetStage === 3) {
+        setRightPanelTab('weather');
+      } else if (targetStage === 2) {
+        setRightPanelTab('risk_monitor');
+      } else if (targetStage === 6) {
+        setRightPanelTab('event_log');
+      }
+    }
+
+    // Auto-execute AI avoidance vector at stage 5/6 if auto-play is enabled
+    if (targetStage >= 5 && !hasExecutedAvoidance && simTimeSeconds >= 40) {
+      handleApplyAIAction('AC_DEMO_1', 30, 0, 0); // Turn Right 30° to HDG 120°
+      setHasExecutedAvoidance(true);
+    }
+  }, [
+    isDemoMode,
+    demoAutoPlay,
+    simTimeSeconds,
+    demoStageIndex,
+    hasExecutedAvoidance,
+    handleApplyAIAction,
+  ]);
+
+  const handleToggleDemoMode = useCallback(() => {
+    if (!isDemoMode) {
+      setIsDemoMode(true);
+      setDemoStageIndex(0);
+      setHasExecutedAvoidance(false);
+      const demoScen = SCENARIOS.scenario_phase6_demo || SCENARIOS.scenario_safe;
+      setActiveScenario(demoScen);
+      if (engineRef.current) {
+        engineRef.current.reset(
+          demoScen.aircraft,
+          demoScen.weatherZones || [],
+          demoScen.restrictedZones || []
+        );
+      }
+      setSelectedAircraftId('AC_DEMO_1');
+    } else {
+      setIsDemoMode(false);
+    }
+  }, [isDemoMode]);
+
+  const handleRestartDemo = useCallback(() => {
+    setDemoStageIndex(0);
+    setHasExecutedAvoidance(false);
+    const demoScen = SCENARIOS.scenario_phase6_demo || SCENARIOS.scenario_safe;
+    setActiveScenario(demoScen);
+    if (engineRef.current) {
+      engineRef.current.reset(
+        demoScen.aircraft,
+        demoScen.weatherZones || [],
+        demoScen.restrictedZones || []
+      );
+    }
+    setSelectedAircraftId('AC_DEMO_1');
+  }, []);
+
+  const handleExecuteAvoidance = useCallback(() => {
+    handleApplyAIAction('AC_DEMO_1', 30, 0, 0);
+    setHasExecutedAvoidance(true);
+    setDemoStageIndex(5);
+  }, [handleApplyAIAction]);
+
+  const handleSetDemoStage = useCallback((index: number) => {
+    setDemoStageIndex(index);
+    const stage = DEMO_STAGES[index];
+    if (stage) {
+      if (stage.triggerTimeSeconds !== undefined && engineRef.current) {
+        engineRef.current.setSimTime(stage.triggerTimeSeconds);
+        setSimTimeSeconds(stage.triggerTimeSeconds);
+      }
+      if (index === 4 || index === 5) {
+        setSelectedAircraftId('AC_DEMO_1');
+        setRightPanelTab('ai_decision');
+      } else if (index === 3) {
+        setRightPanelTab('weather');
+      } else if (index === 2) {
+        setRightPanelTab('risk_monitor');
+      } else if (index === 6) {
+        setRightPanelTab('event_log');
+      }
+    }
+  }, []);
+
   const selectedAircraft = aircraftList.find((ac) => ac.id === selectedAircraftId) || null;
   const activeConflictForSelected = selectedAircraft
     ? conflictSummary.conflicts.find(
@@ -312,292 +446,341 @@ export const App: React.FC = () => {
   );
 
   return (
-    <div className="relative flex flex-col h-screen w-screen bg-[#050811] text-slate-100 overflow-hidden font-sans select-none">
-      {/* Soft Apple Ambient Glow Orbs */}
-      <div className="absolute top-1/4 left-1/5 w-[30rem] h-[30rem] rounded-full bg-sky-600/10 blur-[150px] pointer-events-none liquid-orb-1" />
-      <div className="absolute bottom-1/4 right-1/4 w-[34rem] h-[34rem] rounded-full bg-indigo-600/8 blur-[170px] pointer-events-none liquid-orb-2" />
-      <div className="absolute top-2/3 left-1/3 w-80 h-80 rounded-full bg-cyan-500/6 blur-[140px] pointer-events-none" />
+    <ErrorBoundary fallbackTitle="SkyGuard AI Workspace Root Error">
+      <div className="relative flex flex-col h-screen w-screen bg-[#050811] text-slate-100 overflow-hidden font-sans select-none">
+        {/* Soft Apple Ambient Glow Orbs */}
+        <div className="absolute top-1/4 left-1/5 w-[30rem] h-[30rem] rounded-full bg-sky-600/10 blur-[150px] pointer-events-none liquid-orb-1" />
+        <div className="absolute bottom-1/4 right-1/4 w-[34rem] h-[34rem] rounded-full bg-indigo-600/8 blur-[170px] pointer-events-none liquid-orb-2" />
+        <div className="absolute top-2/3 left-1/3 w-80 h-80 rounded-full bg-cyan-500/6 blur-[140px] pointer-events-none" />
 
-      {/* Top Operations Header Floating Glass Pill */}
-      <TopNav
-        isRunning={settings.isRunning}
-        simSpeed={settings.simSpeed}
-        simTimeSeconds={simTimeSeconds}
-        aircraftCount={aircraftList.length}
-        activeScenarioName={activeScenario.name}
-        onTogglePlayPause={handleTogglePlayPause}
-      />
+        {/* Top Operations Header Floating Glass Pill with Presentation HUD */}
+        <TopNav
+          isRunning={settings.isRunning}
+          simSpeed={settings.simSpeed}
+          simTimeSeconds={simTimeSeconds}
+          aircraftCount={aircraftList.length}
+          activeConflictsCount={conflictSummary.conflicts.length}
+          weatherWarningsCount={weatherSummary.zoneInteractions.length}
+          airspaceStatus={airspaceStatus}
+          activeScenarioName={activeScenario.name}
+          isDemoMode={isDemoMode}
+          isDebugOpen={isDebugOpen}
+          onTogglePlayPause={handleTogglePlayPause}
+          onToggleDemoMode={handleToggleDemoMode}
+          onToggleDebug={() => setIsDebugOpen((prev) => !prev)}
+        />
 
-      {/* Main Tactical Workstation Deck */}
-      <div className="flex-1 flex overflow-hidden px-3 pb-3 pt-1 gap-3">
-        {/* Left Side: Master Console & Strip Rack */}
-        <div className="w-80 flex flex-col gap-3 overflow-y-auto shrink-0 pr-0.5 z-10 custom-scrollbar">
-          <ControlPanel
-            settings={settings}
-            activeScenarioId={activeScenario.id}
-            onTogglePlayPause={handleTogglePlayPause}
-            onStepManual={handleStepManual}
-            onReset={handleReset}
-            onSetSpeed={handleSetSpeed}
-            onUpdateSettings={handleUpdateSettings}
-            onSelectScenario={handleSelectScenario}
-            onOpenAddAircraftModal={() => setIsAddModalOpen(true)}
-          />
+        {/* Dedicated Interactive Demo Presentation Controller Bar (when in Demo Mode) */}
+        {isDemoMode && (
+          <div className="mx-3 mb-1 shrink-0 z-20">
+            <DemoController
+              currentStageIndex={demoStageIndex}
+              autoPlay={demoAutoPlay}
+              simTimeSeconds={simTimeSeconds}
+              hasExecutedAvoidance={hasExecutedAvoidance}
+              onSetStage={handleSetDemoStage}
+              onToggleAutoPlay={() => setDemoAutoPlay((prev) => !prev)}
+              onExecuteAvoidance={handleExecuteAvoidance}
+              onRestartDemo={handleRestartDemo}
+              onExitDemo={() => setIsDemoMode(false)}
+            />
+          </div>
+        )}
 
-          <FlightStripBoard
-            aircraft={aircraftList}
-            selectedAircraftId={selectedAircraftId}
-            onSelectAircraft={(ac) => handleSelectAircraft(ac)}
-          />
-        </div>
+        {/* Main Tactical Workstation Deck */}
+        <div className="flex-1 flex overflow-hidden px-3 pb-2.5 pt-1 gap-3">
+          {/* Left Side: Master Console & Strip Rack */}
+          <div className="w-80 flex flex-col gap-3 overflow-y-auto shrink-0 pr-0.5 z-10 custom-scrollbar">
+            <ErrorBoundary fallbackTitle="ATC Control Panel Error">
+              <ControlPanel
+                settings={settings}
+                activeScenarioId={activeScenario.id}
+                onTogglePlayPause={handleTogglePlayPause}
+                onStepManual={handleStepManual}
+                onReset={handleReset}
+                onSetSpeed={handleSetSpeed}
+                onUpdateSettings={handleUpdateSettings}
+                onSelectScenario={handleSelectScenario}
+                onOpenAddAircraftModal={() => setIsAddModalOpen(true)}
+              />
+            </ErrorBoundary>
 
-        {/* Center: Primary Radar Airspace Scope */}
-        <div className="flex-1 flex flex-col min-w-0 h-full relative z-10">
-          <Airspace
-            aircraft={aircraftList}
-            conflicts={conflictSummary.conflicts}
-            weatherZones={weatherZones}
-            weatherInteractions={weatherSummary.zoneInteractions}
-            dynamicAirspaceSectors={dynamicAirspaceSectors}
-            restrictedZones={restrictedZones}
-            selectedAircraftId={selectedAircraftId}
-            selectedZoneId={selectedZoneId}
-            settings={settings}
-            bounds={bounds}
-            onSelectAircraft={handleSelectAircraft}
-            onSelectZone={handleSelectZone}
-          />
+            <ErrorBoundary fallbackTitle="Flight Strip Board Error">
+              <FlightStripBoard
+                aircraft={aircraftList}
+                selectedAircraftId={selectedAircraftId}
+                onSelectAircraft={(ac) => handleSelectAircraft(ac)}
+              />
+            </ErrorBoundary>
+          </div>
 
-          {/* Bottom Tactical Separation & Atmospheric Safety Bar (Floating Glass Pill) */}
-          <div className="mt-2 liquid-glass px-4 py-2 rounded-full flex items-center justify-between text-xs shadow-2xl border border-white/10">
-            <div className="flex items-center gap-3">
-              <span className="text-slate-400 font-bold text-[9.5px] font-mono tracking-wider">
-                SAFETY STATUS:
-              </span>
+          {/* Center: Primary Radar Airspace Scope */}
+          <div className="flex-1 flex flex-col min-w-0 h-full relative z-10">
+            <ErrorBoundary fallbackTitle="Radar Airspace Scope Error">
+              <Airspace
+                aircraft={aircraftList}
+                conflicts={conflictSummary.conflicts}
+                weatherZones={weatherZones}
+                weatherInteractions={weatherSummary.zoneInteractions}
+                dynamicAirspaceSectors={dynamicAirspaceSectors}
+                restrictedZones={restrictedZones}
+                selectedAircraftId={selectedAircraftId}
+                selectedZoneId={selectedZoneId}
+                settings={settings}
+                bounds={bounds}
+                onSelectAircraft={handleSelectAircraft}
+                onSelectZone={handleSelectZone}
+              />
+            </ErrorBoundary>
 
-              {criticalConflicts.length > 0 ? (
-                <span className="flex items-center gap-1.5 text-red-100 font-bold liquid-glass-red px-3.5 py-1 rounded-full text-[11px] font-mono animate-pulse shadow-lg">
-                  <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
-                  STCA ALERT: {criticalConflicts[0].aircraftA.callsign} ⚡{' '}
-                  {criticalConflicts[0].aircraftB.callsign} — LOSS OF SEPARATION IN{' '}
-                  {criticalConflicts[0].timeToClosestApproach}s
+            {/* Bottom Tactical Separation & Atmospheric Safety Bar (Floating Glass Pill) */}
+            <div className="mt-2 liquid-glass px-4 py-2 rounded-full flex items-center justify-between text-xs shadow-2xl border border-white/10">
+              <div className="flex items-center gap-3">
+                <span className="text-slate-400 font-bold text-[9.5px] font-mono tracking-wider">
+                  SAFETY STATUS:
                 </span>
-              ) : criticalWeather.length > 0 ? (
-                <span className="flex items-center gap-1.5 text-red-100 font-bold liquid-glass-red px-3.5 py-1 rounded-full text-[11px] font-mono animate-pulse shadow-lg">
-                  <CloudLightning className="w-3.5 h-3.5 text-red-400" />
-                  WEATHER HAZARD: {criticalWeather[0].aircraftCallsign} ⚡{' '}
-                  {criticalWeather[0].zoneName} (
-                  {criticalWeather[0].currentExposure
-                    ? 'INSIDE CELL'
-                    : `ENTRY IN ${criticalWeather[0].timeToEntry}s`}
-                  )
+
+                {criticalConflicts.length > 0 ? (
+                  <span className="flex items-center gap-1.5 text-red-100 font-bold liquid-glass-red px-3.5 py-1 rounded-full text-[11px] font-mono animate-pulse shadow-lg">
+                    <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
+                    STCA ALERT: {criticalConflicts[0].aircraftA.callsign} ⚡{' '}
+                    {criticalConflicts[0].aircraftB.callsign} — LOSS OF SEPARATION IN{' '}
+                    {criticalConflicts[0].timeToClosestApproach}s
+                  </span>
+                ) : criticalWeather.length > 0 ? (
+                  <span className="flex items-center gap-1.5 text-red-100 font-bold liquid-glass-red px-3.5 py-1 rounded-full text-[11px] font-mono animate-pulse shadow-lg">
+                    <CloudLightning className="w-3.5 h-3.5 text-red-400" />
+                    WEATHER HAZARD: {criticalWeather[0].aircraftCallsign} ⚡{' '}
+                    {criticalWeather[0].zoneName} (
+                    {criticalWeather[0].currentExposure
+                      ? 'INSIDE CELL'
+                      : `ENTRY IN ${criticalWeather[0].timeToEntry}s`}
+                    )
+                  </span>
+                ) : warningConflicts.length > 0 ? (
+                  <span className="flex items-center gap-1.5 text-amber-100 font-semibold liquid-glass-amber px-3.5 py-1 rounded-full text-[11px] font-mono shadow-md">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                    CONVERGING TRAFFIC: {warningConflicts[0].aircraftA.callsign} &{' '}
+                    {warningConflicts[0].aircraftB.callsign} — CPA {warningConflicts[0].predictedClosestDistance}PX IN{' '}
+                    {warningConflicts[0].timeToClosestApproach}s
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1.5 text-slate-200 font-semibold liquid-glass-subtle px-3.5 py-1 rounded-full text-[11px] font-mono shadow-sm border border-white/10">
+                    <CheckCircle className="w-3.5 h-3.5 text-sky-400" />
+                    AIRWAYS & METEOROLOGY NOMINAL — {conflictSummary.totalPairsChecked} PAIRS & {weatherZones.length} HAZARDS MONITORED
+                  </span>
+                )}
+              </div>
+
+              {/* Tactical Status Legend */}
+              <div className="hidden xl:flex items-center gap-3.5 text-[10px] text-slate-300 font-mono">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] inline-block"></span>
+                  <span className="text-slate-300 font-medium">SAFE</span>
                 </span>
-              ) : warningConflicts.length > 0 ? (
-                <span className="flex items-center gap-1.5 text-amber-100 font-semibold liquid-glass-amber px-3.5 py-1 rounded-full text-[11px] font-mono shadow-md">
-                  <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-                  CONVERGING TRAFFIC: {warningConflicts[0].aircraftA.callsign} &{' '}
-                  {warningConflicts[0].aircraftB.callsign} — CPA {warningConflicts[0].predictedClosestDistance}PX IN{' '}
-                  {warningConflicts[0].timeToClosestApproach}s
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)] inline-block"></span>
+                  <span className="text-amber-300 font-medium">CAUTION</span>
                 </span>
-              ) : (
-                <span className="flex items-center gap-1.5 text-slate-200 font-semibold liquid-glass-subtle px-3.5 py-1 rounded-full text-[11px] font-mono shadow-sm border border-white/10">
-                  <CheckCircle className="w-3.5 h-3.5 text-sky-400" />
-                  AIRWAYS & METEOROLOGY NOMINAL — {conflictSummary.totalPairsChecked} PAIRS & {weatherZones.length} HAZARDS MONITORED
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.8)] inline-block"></span>
+                  <span className="text-orange-300 font-medium">HIGH RISK</span>
                 </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)] inline-block"></span>
+                  <span className="text-red-300 font-medium">CRITICAL</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Side: Multi-Panel Tactical Deck (Overview / AI / Weather / STCA / Inspector / Audit) */}
+          <div className="w-96 flex flex-col gap-2.5 overflow-y-auto shrink-0 pl-0.5 z-10 custom-scrollbar">
+            {/* iOS Liquid Glass Segmented 6-Tab Switcher (Pill Capsule) */}
+            <div className="liquid-glass-subtle p-1 rounded-full grid grid-cols-6 gap-1 border border-white/10 shadow-lg">
+              <button
+                onClick={() => setRightPanelTab('overview')}
+                className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-full text-[10px] font-bold transition-all duration-200 cursor-pointer ${
+                  rightPanelTab === 'overview'
+                    ? 'liquid-glass-active text-white shadow-md'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Globe className="w-3.5 h-3.5 text-sky-400" />
+                <span>Sectors</span>
+              </button>
+
+              <button
+                onClick={() => setRightPanelTab('ai_decision')}
+                className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-full text-[10px] font-bold transition-all duration-200 cursor-pointer ${
+                  rightPanelTab === 'ai_decision'
+                    ? 'liquid-glass-active text-white shadow-md'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Brain className="w-3.5 h-3.5 text-sky-400" />
+                <span>AI</span>
+                {selectedAIDecision && selectedAIDecision.aiRiskCategory === 'CRITICAL' && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                )}
+              </button>
+
+              <button
+                onClick={() => setRightPanelTab('weather')}
+                className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-full text-[10px] font-bold transition-all duration-200 cursor-pointer ${
+                  rightPanelTab === 'weather'
+                    ? 'liquid-glass-active text-white shadow-md'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <CloudLightning className="w-3.5 h-3.5 text-indigo-400" />
+                <span>WX</span>
+                {weatherSummary.stormCount > 0 && (
+                  <span className="px-1 py-0.2 rounded-full bg-red-500 text-white font-mono text-[8px] font-bold">
+                    {weatherSummary.stormCount}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => setRightPanelTab('risk_monitor')}
+                className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-full text-[10px] font-bold transition-all duration-200 cursor-pointer ${
+                  rightPanelTab === 'risk_monitor'
+                    ? 'liquid-glass-active text-white shadow-md'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <ShieldAlert className="w-3.5 h-3.5 text-red-400" />
+                <span>STCA</span>
+                {conflictSummary.conflicts.length > 0 && (
+                  <span className="px-1 py-0.2 rounded-full bg-red-500 text-white font-mono text-[8px] font-bold animate-pulse">
+                    {conflictSummary.conflicts.length}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => setRightPanelTab('inspector')}
+                className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-full text-[10px] font-bold transition-all duration-200 cursor-pointer ${
+                  rightPanelTab === 'inspector'
+                    ? 'liquid-glass-active text-white shadow-md'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Sliders className="w-3.5 h-3.5 text-sky-400" />
+                <span>Unit</span>
+              </button>
+
+              <button
+                onClick={() => setRightPanelTab('event_log')}
+                className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-full text-[10px] font-bold transition-all duration-200 cursor-pointer ${
+                  rightPanelTab === 'event_log'
+                    ? 'liquid-glass-active text-white shadow-md'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <History className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Audit</span>
+                {collisionEvents.length + weatherEvents.length > 0 && (
+                  <span className="px-1 py-0.2 rounded-full bg-white/15 text-white font-mono text-[8px]">
+                    {collisionEvents.length + weatherEvents.length}
+                  </span>
+                )}
+              </button>
+            </div>
+
+            {/* Tab Content Display */}
+            <ErrorBoundary fallbackTitle="Tactical Panel Error">
+              {rightPanelTab === 'overview' && (
+                <AirspaceOverview
+                  overview={airspaceOverview}
+                  sectors={airspaceSectors}
+                  aircraft={aircraftList}
+                  conflicts={conflictSummary.conflicts}
+                  weatherSummary={weatherSummary}
+                  weatherZones={weatherZones}
+                  restrictedZones={restrictedZones}
+                  selectedAircraftId={selectedAircraftId}
+                  onSelectAircraft={(ac) => handleSelectAircraft(ac)}
+                />
               )}
-            </div>
 
-            {/* Tactical Status Legend */}
-            <div className="hidden xl:flex items-center gap-3.5 text-[10px] text-slate-300 font-mono">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)] inline-block"></span>
-                <span className="text-slate-300 font-medium">SAFE</span>
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)] inline-block"></span>
-                <span className="text-amber-300 font-medium">CAUTION</span>
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.8)] inline-block"></span>
-                <span className="text-orange-300 font-medium">HIGH RISK</span>
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)] inline-block"></span>
-                <span className="text-red-300 font-medium">DANGER</span>
-              </span>
-            </div>
+              {rightPanelTab === 'ai_decision' && (
+                <AIDecisionCenter
+                  aircraft={selectedAircraft}
+                  decision={selectedAIDecision}
+                  metrics={mlMetrics}
+                  onApplyAction={handleApplyAIAction}
+                  onSelectAircraft={(ac) => handleSelectAircraft(ac)}
+                  allAircraft={aircraftList}
+                />
+              )}
+
+              {rightPanelTab === 'weather' && (
+                <WeatherAnalyzer
+                  weatherSummary={weatherSummary}
+                  weatherZones={weatherZones}
+                  aircraftList={aircraftList}
+                  onToggleZone={handleToggleZone}
+                  onSelectAircraft={(ac) => handleSelectAircraft(ac)}
+                />
+              )}
+
+              {rightPanelTab === 'risk_monitor' && (
+                <CollisionRiskMonitor
+                  conflictSummary={conflictSummary}
+                  aircraftList={aircraftList}
+                  selectedAircraftId={selectedAircraftId}
+                  onSelectAircraft={(ac) => handleSelectAircraft(ac)}
+                />
+              )}
+
+              {rightPanelTab === 'inspector' && (
+                <AircraftInfo
+                  aircraft={selectedAircraft}
+                  activeConflict={activeConflictForSelected}
+                  unifiedSafety={unifiedSafetyForSelected}
+                  onUpdateAircraft={handleUpdateAircraftDirect}
+                  onDeselect={() => setSelectedAircraftId(null)}
+                  onRemoveAircraft={handleRemoveAircraft}
+                />
+              )}
+
+              {rightPanelTab === 'event_log' && (
+                <EventLog
+                  collisionEvents={collisionEvents}
+                  weatherEvents={weatherEvents}
+                  onClearEvents={handleClearEvents}
+                />
+              )}
+            </ErrorBoundary>
           </div>
         </div>
 
-        {/* Right Side: Multi-Panel Tactical Deck (Overview / AI / Weather / STCA / Inspector / Audit) */}
-        <div className="w-96 flex flex-col gap-2.5 overflow-y-auto shrink-0 pl-0.5 z-10 custom-scrollbar">
-          {/* iOS Liquid Glass Segmented 6-Tab Switcher (Pill Capsule) */}
-          <div className="liquid-glass-subtle p-1 rounded-full grid grid-cols-6 gap-1 border border-white/10 shadow-lg">
-            <button
-              onClick={() => setRightPanelTab('overview')}
-              className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-full text-[10px] font-bold transition-all duration-200 cursor-pointer ${
-                rightPanelTab === 'overview'
-                  ? 'liquid-glass-active text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Globe className="w-3.5 h-3.5 text-sky-400" />
-              <span>Sectors</span>
-            </button>
+        {/* Developer / Debug Telemetry HUD Panel */}
+        <DebugPanel
+          aircraftList={aircraftList}
+          conflictSummary={conflictSummary}
+          weatherSummary={weatherSummary}
+          weatherZones={weatherZones}
+          selectedAIDecision={selectedAIDecision}
+          selectedAircraft={selectedAircraft}
+          overallAirspaceRiskScore={airspaceOverview.overallAirspaceRiskScore}
+          simTimeSeconds={simTimeSeconds}
+          isOpen={isDebugOpen}
+          onClose={() => setIsDebugOpen(false)}
+        />
 
-            <button
-              onClick={() => setRightPanelTab('ai_decision')}
-              className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-full text-[10px] font-bold transition-all duration-200 cursor-pointer ${
-                rightPanelTab === 'ai_decision'
-                  ? 'liquid-glass-active text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Brain className="w-3.5 h-3.5 text-sky-400" />
-              <span>AI</span>
-              {selectedAIDecision && selectedAIDecision.aiRiskCategory === 'CRITICAL' && (
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-              )}
-            </button>
-
-            <button
-              onClick={() => setRightPanelTab('weather')}
-              className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-full text-[10px] font-bold transition-all duration-200 cursor-pointer ${
-                rightPanelTab === 'weather'
-                  ? 'liquid-glass-active text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <CloudLightning className="w-3.5 h-3.5 text-indigo-400" />
-              <span>WX</span>
-              {weatherSummary.stormCount > 0 && (
-                <span className="px-1 py-0.2 rounded-full bg-red-500 text-white font-mono text-[8px] font-bold">
-                  {weatherSummary.stormCount}
-                </span>
-              )}
-            </button>
-
-            <button
-              onClick={() => setRightPanelTab('risk_monitor')}
-              className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-full text-[10px] font-bold transition-all duration-200 cursor-pointer ${
-                rightPanelTab === 'risk_monitor'
-                  ? 'liquid-glass-active text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <ShieldAlert className="w-3.5 h-3.5 text-red-400" />
-              <span>STCA</span>
-              {conflictSummary.conflicts.length > 0 && (
-                <span className="px-1 py-0.2 rounded-full bg-red-500 text-white font-mono text-[8px] font-bold animate-pulse">
-                  {conflictSummary.conflicts.length}
-                </span>
-              )}
-            </button>
-
-            <button
-              onClick={() => setRightPanelTab('inspector')}
-              className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-full text-[10px] font-bold transition-all duration-200 cursor-pointer ${
-                rightPanelTab === 'inspector'
-                  ? 'liquid-glass-active text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Sliders className="w-3.5 h-3.5 text-sky-400" />
-              <span>Unit</span>
-            </button>
-
-            <button
-              onClick={() => setRightPanelTab('event_log')}
-              className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-full text-[10px] font-bold transition-all duration-200 cursor-pointer ${
-                rightPanelTab === 'event_log'
-                  ? 'liquid-glass-active text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <History className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Audit</span>
-              {collisionEvents.length + weatherEvents.length > 0 && (
-                <span className="px-1 py-0.2 rounded-full bg-white/15 text-white font-mono text-[8px]">
-                  {collisionEvents.length + weatherEvents.length}
-                </span>
-              )}
-            </button>
-          </div>
-
-          {/* Tab Content Display */}
-          {rightPanelTab === 'overview' && (
-            <AirspaceOverview
-              overview={airspaceOverview}
-              sectors={airspaceSectors}
-              aircraft={aircraftList}
-              conflicts={conflictSummary.conflicts}
-              weatherSummary={weatherSummary}
-              weatherZones={weatherZones}
-              restrictedZones={restrictedZones}
-              selectedAircraftId={selectedAircraftId}
-              onSelectAircraft={(ac) => handleSelectAircraft(ac)}
-            />
-          )}
-
-          {rightPanelTab === 'ai_decision' && (
-            <AIDecisionCenter
-              aircraft={selectedAircraft}
-              decision={selectedAIDecision}
-              metrics={mlMetrics}
-              onApplyAction={handleApplyAIAction}
-              onSelectAircraft={(ac) => handleSelectAircraft(ac)}
-              allAircraft={aircraftList}
-            />
-          )}
-
-          {rightPanelTab === 'weather' && (
-            <WeatherAnalyzer
-              weatherSummary={weatherSummary}
-              weatherZones={weatherZones}
-              aircraftList={aircraftList}
-              onToggleZone={handleToggleZone}
-              onSelectAircraft={(ac) => handleSelectAircraft(ac)}
-            />
-          )}
-
-          {rightPanelTab === 'risk_monitor' && (
-            <CollisionRiskMonitor
-              conflictSummary={conflictSummary}
-              aircraftList={aircraftList}
-              selectedAircraftId={selectedAircraftId}
-              onSelectAircraft={(ac) => handleSelectAircraft(ac)}
-            />
-          )}
-
-          {rightPanelTab === 'inspector' && (
-            <AircraftInfo
-              aircraft={selectedAircraft}
-              activeConflict={activeConflictForSelected}
-              unifiedSafety={unifiedSafetyForSelected}
-              onUpdateAircraft={handleUpdateAircraftDirect}
-              onDeselect={() => setSelectedAircraftId(null)}
-              onRemoveAircraft={handleRemoveAircraft}
-            />
-          )}
-
-          {rightPanelTab === 'event_log' && (
-            <EventLog
-              collisionEvents={collisionEvents}
-              weatherEvents={weatherEvents}
-              onClearEvents={handleClearEvents}
-            />
-          )}
-        </div>
+        {/* Target Injection Modal */}
+        <AddAircraftModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onAddAircraft={handleAddAircraft}
+        />
       </div>
-
-      {/* Target Injection Modal */}
-      <AddAircraftModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onAddAircraft={handleAddAircraft}
-      />
-    </div>
+    </ErrorBoundary>
   );
 };
 
 export default App;
+

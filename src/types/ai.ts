@@ -75,6 +75,7 @@ export interface AIDecision {
   explanationDetails: string[];
   candidates: ManeuverCandidate[];
   hasSafeAlternative: boolean;
+  featureVector?: AIFeatureVector;
   timestamp: number;
 }
 

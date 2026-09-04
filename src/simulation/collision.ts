@@ -77,14 +77,24 @@ export function predictPairwiseCollision(
   aircraftB: Aircraft,
   thresholds: CollisionThresholds = DEFAULT_COLLISION_THRESHOLDS
 ): CollisionPrediction {
+  // Defensive sanitization: ensure coordinates and speeds are finite numbers
+  const ax = Number.isFinite(aircraftA.x) ? aircraftA.x : 0;
+  const ay = Number.isFinite(aircraftA.y) ? aircraftA.y : 0;
+  const bx = Number.isFinite(aircraftB.x) ? aircraftB.x : 0;
+  const by = Number.isFinite(aircraftB.y) ? aircraftB.y : 0;
+  const aSpeed = Number.isFinite(aircraftA.speed) && aircraftA.speed >= 0 ? aircraftA.speed : 0;
+  const bSpeed = Number.isFinite(aircraftB.speed) && aircraftB.speed >= 0 ? aircraftB.speed : 0;
+  const aHdg = Number.isFinite(aircraftA.heading) ? (aircraftA.heading % 360 + 360) % 360 : 0;
+  const bHdg = Number.isFinite(aircraftB.heading) ? (aircraftB.heading % 360 + 360) % 360 : 0;
+
   // 1. Current horizontal separation distance
-  const dx0 = aircraftB.x - aircraftA.x;
-  const dy0 = aircraftB.y - aircraftA.y;
+  const dx0 = bx - ax;
+  const dy0 = by - ay;
   const currentDistance = Math.sqrt(dx0 * dx0 + dy0 * dy0);
 
   // 2. Compute true velocity vectors in simulation coordinate system
-  const vA = calculateVelocity(aircraftA.speed, aircraftA.heading);
-  const vB = calculateVelocity(aircraftB.speed, aircraftB.heading);
+  const vA = calculateVelocity(aSpeed, aHdg);
+  const vB = calculateVelocity(bSpeed, bHdg);
 
   // Scaled relative velocity components (pixels per second)
   const rvx = (vB.vx - vA.vx) * SPEED_SCALE_FACTOR;
@@ -101,14 +111,14 @@ export function predictPairwiseCollision(
   let isDiverging = false;
 
   // 3. Closest Point of Approach (CPA) Analytical Calculation
-  if (vRelSquared < 1e-7) {
+  if (vRelSquared < 1e-7 || !Number.isFinite(vRelSquared)) {
     // Parallel flights with matching speed: constant distance
     timeToClosestApproach = 0;
     isDiverging = false;
   } else {
     const rawTimeCpa = -dotProduct / vRelSquared;
 
-    if (rawTimeCpa <= 0) {
+    if (rawTimeCpa <= 0 || !Number.isFinite(rawTimeCpa)) {
       // CPA was in the past; distance is currently increasing (diverging)
       timeToClosestApproach = 0;
       isDiverging = true;

@@ -257,6 +257,11 @@ export class SimulationEngine {
     this.notify();
   }
 
+  public setSimTime(timeSeconds: number) {
+    this.settings.simTimeSeconds = Math.max(0, timeSeconds);
+    this.notify();
+  }
+
   public updateAircraftDirect(
     id: string,
     updates: Partial<Pick<Aircraft, 'heading' | 'speed' | 'altitude' | 'targetAltitude' | 'status' | 'callsign'>>
