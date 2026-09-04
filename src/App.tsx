@@ -13,7 +13,10 @@ import { FlightStripBoard } from './components/FlightStripBoard';
 import { AddAircraftModal } from './components/AddAircraftModal';
 import { CollisionRiskMonitor } from './components/CollisionRiskMonitor';
 import { WeatherAnalyzer } from './components/WeatherAnalyzer';
+import { AIDecisionCenter } from './components/AIDecisionCenter';
 import { EventLog } from './components/EventLog';
+import { generateAIDecision } from './ai/decisionEngine';
+import { globalAIRiskModel } from './ai/model';
 import {
   AlertTriangle,
   CheckCircle,
@@ -21,6 +24,7 @@ import {
   ShieldAlert,
   History,
   CloudLightning,
+  Brain,
 } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -69,8 +73,8 @@ export const App: React.FC = () => {
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [rightPanelTab, setRightPanelTab] = useState<
-    'risk_monitor' | 'weather' | 'inspector' | 'event_log'
-  >('weather');
+    'ai_decision' | 'weather' | 'risk_monitor' | 'inspector' | 'event_log'
+  >('ai_decision');
 
   const [settings, setSettings] = useState<SimulationSettings>({
     isRunning: true,
@@ -224,6 +228,28 @@ export const App: React.FC = () => {
     engineRef.current.clearEvents();
   }, []);
 
+  const handleApplyAIAction = useCallback(
+    (aircraftId: string, headingDelta: number, altDelta: number, speedDelta: number) => {
+      if (!engineRef.current) return;
+      const target = aircraftList.find((a) => a.id === aircraftId);
+      if (!target) return;
+
+      let newHeading = (target.heading + headingDelta) % 360;
+      if (newHeading < 0) newHeading += 360;
+
+      const newAltitude = Math.max(10000, Math.min(45000, target.altitude + altDelta));
+      const newSpeed = Math.max(250, Math.min(850, target.speed + speedDelta));
+
+      engineRef.current.updateAircraftDirect(aircraftId, {
+        heading: newHeading,
+        altitude: newAltitude,
+        targetAltitude: newAltitude,
+        speed: newSpeed,
+      });
+    },
+    [aircraftList]
+  );
+
   const selectedAircraft = aircraftList.find((ac) => ac.id === selectedAircraftId) || null;
   const activeConflictForSelected = selectedAircraft
     ? conflictSummary.conflicts.find(
@@ -233,6 +259,19 @@ export const App: React.FC = () => {
   const unifiedSafetyForSelected = selectedAircraft
     ? unifiedSafetyMap.get(selectedAircraft.id) || null
     : null;
+
+  const selectedAIDecision = selectedAircraft
+    ? generateAIDecision(
+        selectedAircraft,
+        aircraftList,
+        conflictSummary.conflicts,
+        weatherSummary.zoneInteractions,
+        weatherZones,
+        restrictedZones
+      )
+    : null;
+
+  const mlMetrics = globalAIRiskModel.getMetrics();
 
   const bounds = engineRef.current
     ? engineRef.current.getBounds()
@@ -372,22 +411,37 @@ export const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Side: Multi-Panel Tactical Deck (Risk Matrix / Weather Analyzer / Inspector / Audit Log) */}
-        <div className="w-92 flex flex-col gap-2.5 overflow-y-auto shrink-0 pl-0.5 z-10">
-          {/* iOS Liquid Glass Segmented 4-Tab Switcher */}
-          <div className="liquid-glass-subtle p-1 rounded-2xl grid grid-cols-4 gap-1 border border-white/10 shadow-lg">
+        {/* Right Side: Multi-Panel Tactical Deck (AI / Weather / STCA / Inspector / Audit) */}
+        <div className="w-96 flex flex-col gap-2.5 overflow-y-auto shrink-0 pl-0.5 z-10">
+          {/* iOS Liquid Glass Segmented 5-Tab Switcher */}
+          <div className="liquid-glass-subtle p-1 rounded-2xl grid grid-cols-5 gap-1 border border-white/10 shadow-lg">
+            <button
+              onClick={() => setRightPanelTab('ai_decision')}
+              className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-xl text-[10px] font-bold transition-all duration-200 cursor-pointer ${
+                rightPanelTab === 'ai_decision'
+                  ? 'liquid-glass-active text-white shadow-md'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Brain className="w-3.5 h-3.5 text-sky-400" />
+              <span>AI</span>
+              {selectedAIDecision && selectedAIDecision.aiRiskCategory === 'CRITICAL' && (
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+              )}
+            </button>
+
             <button
               onClick={() => setRightPanelTab('weather')}
-              className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-xl text-[10.5px] font-bold transition-all duration-200 cursor-pointer ${
+              className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-xl text-[10px] font-bold transition-all duration-200 cursor-pointer ${
                 rightPanelTab === 'weather'
                   ? 'liquid-glass-active text-white shadow-md'
                   : 'text-slate-400 hover:text-white hover:bg-white/5'
               }`}
             >
               <CloudLightning className="w-3.5 h-3.5 text-indigo-400" />
-              <span>Weather</span>
+              <span>WX</span>
               {weatherSummary.stormCount > 0 && (
-                <span className="px-1 py-0.2 rounded-full bg-red-500 text-white font-mono text-[8.5px] font-bold">
+                <span className="px-1 py-0.2 rounded-full bg-red-500 text-white font-mono text-[8px] font-bold">
                   {weatherSummary.stormCount}
                 </span>
               )}
@@ -395,7 +449,7 @@ export const App: React.FC = () => {
 
             <button
               onClick={() => setRightPanelTab('risk_monitor')}
-              className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-xl text-[10.5px] font-bold transition-all duration-200 cursor-pointer ${
+              className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-xl text-[10px] font-bold transition-all duration-200 cursor-pointer ${
                 rightPanelTab === 'risk_monitor'
                   ? 'liquid-glass-active text-white shadow-md'
                   : 'text-slate-400 hover:text-white hover:bg-white/5'
@@ -404,7 +458,7 @@ export const App: React.FC = () => {
               <ShieldAlert className="w-3.5 h-3.5 text-red-400" />
               <span>STCA</span>
               {conflictSummary.conflicts.length > 0 && (
-                <span className="px-1 py-0.2 rounded-full bg-red-500 text-white font-mono text-[8.5px] font-bold animate-pulse">
+                <span className="px-1 py-0.2 rounded-full bg-red-500 text-white font-mono text-[8px] font-bold animate-pulse">
                   {conflictSummary.conflicts.length}
                 </span>
               )}
@@ -412,19 +466,19 @@ export const App: React.FC = () => {
 
             <button
               onClick={() => setRightPanelTab('inspector')}
-              className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-xl text-[10.5px] font-bold transition-all duration-200 cursor-pointer ${
+              className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-xl text-[10px] font-bold transition-all duration-200 cursor-pointer ${
                 rightPanelTab === 'inspector'
                   ? 'liquid-glass-active text-white shadow-md'
                   : 'text-slate-400 hover:text-white hover:bg-white/5'
               }`}
             >
               <Sliders className="w-3.5 h-3.5 text-sky-400" />
-              <span>Inspector</span>
+              <span>Unit</span>
             </button>
 
             <button
               onClick={() => setRightPanelTab('event_log')}
-              className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-xl text-[10.5px] font-bold transition-all duration-200 cursor-pointer ${
+              className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-xl text-[10px] font-bold transition-all duration-200 cursor-pointer ${
                 rightPanelTab === 'event_log'
                   ? 'liquid-glass-active text-white shadow-md'
                   : 'text-slate-400 hover:text-white hover:bg-white/5'
@@ -433,7 +487,7 @@ export const App: React.FC = () => {
               <History className="w-3.5 h-3.5 text-cyan-400" />
               <span>Audit</span>
               {collisionEvents.length + weatherEvents.length > 0 && (
-                <span className="px-1 py-0.2 rounded-full bg-white/15 text-white font-mono text-[8.5px]">
+                <span className="px-1 py-0.2 rounded-full bg-white/15 text-white font-mono text-[8px]">
                   {collisionEvents.length + weatherEvents.length}
                 </span>
               )}
@@ -441,6 +495,17 @@ export const App: React.FC = () => {
           </div>
 
           {/* Tab Content Display */}
+          {rightPanelTab === 'ai_decision' && (
+            <AIDecisionCenter
+              aircraft={selectedAircraft}
+              decision={selectedAIDecision}
+              metrics={mlMetrics}
+              onApplyAction={handleApplyAIAction}
+              onSelectAircraft={(ac) => handleSelectAircraft(ac)}
+              allAircraft={aircraftList}
+            />
+          )}
+
           {rightPanelTab === 'weather' && (
             <WeatherAnalyzer
               weatherSummary={weatherSummary}
