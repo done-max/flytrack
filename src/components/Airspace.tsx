@@ -85,7 +85,7 @@ export const Airspace: React.FC<AirspaceProps> = ({
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full bg-[#000000] overflow-hidden select-none cursor-crosshair border border-[#14532d]/70 rounded-xs shadow-[inset_0_0_20px_rgba(34,197,94,0.06)]"
+      className="relative w-full h-full bg-[#020503]/90 overflow-hidden select-none cursor-crosshair rounded-3xl border border-white/10 shadow-[0_16px_48px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.15)] backdrop-blur-xl"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -159,53 +159,53 @@ export const Airspace: React.FC<AirspaceProps> = ({
         </g>
       </svg>
 
-      {/* Scope Control Toolbar (Top Right) */}
-      <div className="absolute top-2 right-2 z-20 flex items-center gap-1.5 font-mono">
-        <div className="flex items-center bg-[#050805]/95 border border-[#14532d] px-1 py-0.5 rounded-xs text-xs">
+      {/* Floating iOS Glass Control Toolbar (Top Right) */}
+      <div className="absolute top-3 right-3 z-20 flex items-center gap-2">
+        <div className="flex items-center liquid-glass px-1.5 py-1 rounded-2xl shadow-xl">
           <button
             onClick={() => handleZoom(1.15)}
             title="Zoom In"
-            className="p-1 text-slate-400 hover:text-green-400 hover:bg-[#0a120a] rounded transition-colors"
+            className="p-1.5 text-slate-300 hover:text-green-300 hover:bg-white/10 rounded-xl transition-all duration-150 active:scale-90"
           >
             <ZoomIn className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => handleZoom(0.85)}
             title="Zoom Out"
-            className="p-1 text-slate-400 hover:text-green-400 hover:bg-[#0a120a] rounded transition-colors"
+            className="p-1.5 text-slate-300 hover:text-green-300 hover:bg-white/10 rounded-xl transition-all duration-150 active:scale-90"
           >
             <ZoomOut className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={handleResetView}
             title="Reset Scope View"
-            className="p-1 text-slate-400 hover:text-green-400 hover:bg-[#0a120a] rounded transition-colors"
+            className="p-1.5 text-slate-300 hover:text-green-300 hover:bg-white/10 rounded-xl transition-all duration-150 active:scale-90"
           >
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        <div className="bg-[#050805]/95 border border-[#14532d] px-2 py-1 rounded-xs text-[11px] text-green-400 flex items-center gap-1">
-          <Compass className="w-3 h-3 text-green-400" />
-          <span>HDG REF: MAG 000°</span>
+        <div className="liquid-glass px-3 py-1.5 rounded-2xl text-[11px] font-mono text-emerald-300 flex items-center gap-1.5 shadow-xl">
+          <Compass className="w-3.5 h-3.5 text-emerald-400" />
+          <span>MAG 000°</span>
         </div>
       </div>
 
-      {/* Scope Telemetry Footer (Bottom Left) */}
-      <div className="absolute bottom-2 left-2 z-20 flex items-center gap-2 bg-[#050805]/95 border border-[#14532d] px-2.5 py-1 rounded-xs text-[11px] font-mono text-slate-300">
-        <div className="flex items-center gap-1 text-green-400">
-          <Crosshair className="w-3 h-3" />
-          <span>CURSOR:</span>
+      {/* Floating iOS Glass Scope Telemetry Footer (Bottom Left) */}
+      <div className="absolute bottom-3 left-3 z-20 flex items-center gap-2.5 liquid-glass px-3.5 py-1.5 rounded-2xl text-[11px] font-mono text-slate-300 shadow-xl">
+        <div className="flex items-center gap-1 text-emerald-400">
+          <Crosshair className="w-3.5 h-3.5" />
+          <span className="font-sans font-medium text-[10px] text-slate-400">CURSOR</span>
         </div>
         <span>
-          X: <strong className="text-green-300">{cursorPos ? cursorPos.x : '---'}</strong>
+          X: <strong className="text-emerald-300 font-semibold">{cursorPos ? cursorPos.x : '---'}</strong>
         </span>
         <span>
-          Y: <strong className="text-green-300">{cursorPos ? cursorPos.y : '---'}</strong>
+          Y: <strong className="text-emerald-300 font-semibold">{cursorPos ? cursorPos.y : '---'}</strong>
         </span>
-        <span className="text-slate-600">|</span>
+        <span className="text-white/20">|</span>
         <span>
-          ZOOM: <strong className="text-green-300">{Math.round(zoom * 100)}%</strong>
+          ZOOM: <strong className="text-emerald-300 font-semibold">{Math.round(zoom * 100)}%</strong>
         </span>
       </div>
     </div>

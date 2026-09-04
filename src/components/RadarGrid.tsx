@@ -43,7 +43,7 @@ export const RadarGrid: React.FC<RadarGridProps> = ({
     { deg: 330, label: '330°' },
   ];
 
-  // Navigation Fixes & VORs (Secondary Blue & Green)
+  // Navigation Fixes & VORs
   const waypoints = [
     { name: 'KILMA', x: 200, y: 180, type: 'FIX' },
     { name: 'IGN', x: 800, y: 160, type: 'VOR' },
@@ -74,35 +74,45 @@ export const RadarGrid: React.FC<RadarGridProps> = ({
           <path
             d="M 100 0 L 0 0 0 100"
             fill="none"
-            stroke="rgba(34, 197, 94, 0.08)"
+            stroke="rgba(34, 197, 94, 0.07)"
             strokeWidth="0.6"
           />
+          <circle cx="0" cy="0" r="0.8" fill="rgba(74, 222, 128, 0.25)" />
         </pattern>
 
-        {/* Phosphor Green Radar Sweep Gradient */}
+        {/* Liquid Phosphor Sweep Beam Gradient */}
         <linearGradient id="atc-sweep-green" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="rgba(34, 197, 94, 0.22)" />
-          <stop offset="50%" stopColor="rgba(34, 197, 94, 0.04)" />
+          <stop offset="0%" stopColor="rgba(34, 197, 94, 0.28)" />
+          <stop offset="35%" stopColor="rgba(34, 197, 94, 0.08)" />
           <stop offset="100%" stopColor="transparent" />
         </linearGradient>
+
+        <radialGradient id="atc-center-glow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="rgba(34, 197, 94, 0.12)" />
+          <stop offset="100%" stopColor="transparent" />
+        </radialGradient>
       </defs>
+
+      {/* Center Subtle Glow */}
+      <circle cx={centerX} cy={centerY} r={350} fill="url(#atc-center-glow)" />
 
       {/* Scope Background Grid */}
       {showSectorGrid && (
         <>
           <rect width={width} height={height} fill="url(#atc-grid-green)" />
 
-          {/* Airway routes in phosphor green */}
-          <g className="airways" stroke="rgba(34, 197, 94, 0.16)" strokeWidth="0.8" strokeDasharray="3 3">
+          {/* Airway routes in luminous phosphor green */}
+          <g className="airways" stroke="rgba(74, 222, 128, 0.18)" strokeWidth="0.8" strokeDasharray="4 4">
             {airways.map((aw) => (
               <g key={aw.id}>
                 <line x1={aw.x1} y1={aw.y1} x2={aw.x2} y2={aw.y2} />
                 <text
                   x={(aw.x1 + aw.x2) / 2 + 8}
                   y={(aw.y1 + aw.y2) / 2 - 4}
-                  fill="rgba(34, 197, 94, 0.4)"
-                  fontSize="8"
+                  fill="rgba(74, 222, 128, 0.5)"
+                  fontSize="8.5"
                   letterSpacing="0.5"
+                  fontWeight="600"
                 >
                   {aw.id}
                 </text>
@@ -116,7 +126,7 @@ export const RadarGrid: React.FC<RadarGridProps> = ({
             y1={centerY}
             x2={width}
             y2={centerY}
-            stroke="rgba(34, 197, 94, 0.2)"
+            stroke="rgba(74, 222, 128, 0.25)"
             strokeWidth="0.8"
           />
           <line
@@ -124,7 +134,7 @@ export const RadarGrid: React.FC<RadarGridProps> = ({
             y1={0}
             x2={centerX}
             y2={height}
-            stroke="rgba(34, 197, 94, 0.2)"
+            stroke="rgba(74, 222, 128, 0.25)"
             strokeWidth="0.8"
           />
         </>
@@ -140,14 +150,14 @@ export const RadarGrid: React.FC<RadarGridProps> = ({
                 cy={centerY}
                 r={ring.radius}
                 fill="none"
-                stroke="rgba(34, 197, 94, 0.22)"
+                stroke="rgba(74, 222, 128, 0.25)"
                 strokeWidth="0.8"
-                strokeDasharray="2 4"
+                strokeDasharray="3 5"
               />
               <text
-                x={centerX + ring.radius - 3}
+                x={centerX + ring.radius - 4}
                 y={centerY - 4}
-                fill="rgba(34, 197, 94, 0.55)"
+                fill="rgba(134, 239, 172, 0.65)"
                 fontSize="9"
                 textAnchor="end"
                 fontWeight="600"
@@ -157,17 +167,17 @@ export const RadarGrid: React.FC<RadarGridProps> = ({
             </g>
           ))}
 
-          {/* Outer 100 NM Scope Limit Ring in Radar Green */}
+          {/* Outer 100 NM Scope Limit Ring */}
           <circle
             cx={centerX}
             cy={centerY}
             r={400}
             fill="none"
-            stroke="rgba(34, 197, 94, 0.45)"
+            stroke="rgba(74, 222, 128, 0.5)"
             strokeWidth="1.2"
           />
 
-          {/* Compass Rose Azimuth Ticks in Radar Green */}
+          {/* Compass Rose Azimuth Ticks */}
           {azimuths.map((az) => {
             const rad = ((az.deg - 90) * Math.PI) / 180;
             const rOuter = 400;
@@ -188,13 +198,13 @@ export const RadarGrid: React.FC<RadarGridProps> = ({
                   y1={y1}
                   x2={x2}
                   y2={y2}
-                  stroke="rgba(34, 197, 94, 0.6)"
-                  strokeWidth="1"
+                  stroke="rgba(74, 222, 128, 0.7)"
+                  strokeWidth="1.2"
                 />
                 <text
                   x={xText}
                   y={yText}
-                  fill="rgba(74, 222, 128, 0.8)"
+                  fill="rgba(134, 239, 172, 0.9)"
                   fontSize="9"
                   textAnchor="middle"
                   fontWeight="600"
@@ -207,32 +217,32 @@ export const RadarGrid: React.FC<RadarGridProps> = ({
         </g>
       )}
 
-      {/* Navigation Fixes & VORs in Secondary Blue */}
+      {/* Navigation Fixes & VORs in Liquid Cyan / Sky Blue */}
       <g className="navigation-fixes">
         {waypoints.map((wp) => (
           <g key={wp.name} transform={`translate(${wp.x}, ${wp.y})`}>
             {wp.type === 'VOR' ? (
               <polygon
                 points="0,-5 4.3,-2.5 4.3,2.5 0,5 -4.3,2.5 -4.3,-2.5"
-                fill="none"
+                fill="rgba(56, 189, 248, 0.15)"
                 stroke="#38bdf8"
-                strokeWidth="1"
+                strokeWidth="1.2"
               />
             ) : (
               <polygon
-                points="0,-4 4,3 -4,3"
-                fill="none"
+                points="0,-4.5 4.5,3.5 -4.5,3.5"
+                fill="rgba(56, 189, 248, 0.15)"
                 stroke="#38bdf8"
-                strokeWidth="1"
+                strokeWidth="1.2"
               />
             )}
-            <circle cx="0" cy="0" r="1.2" fill="#60a5fa" />
+            <circle cx="0" cy="0" r="1.5" fill="#bae6fd" />
             <text
-              x="7"
-              y="3"
-              fill="rgba(56, 189, 248, 0.75)"
+              x="8"
+              y="3.5"
+              fill="#7dd3fc"
               fontSize="8.5"
-              fontWeight="600"
+              fontWeight="700"
               letterSpacing="0.5"
             >
               {wp.name}
@@ -241,7 +251,7 @@ export const RadarGrid: React.FC<RadarGridProps> = ({
         ))}
       </g>
 
-      {/* Phosphor Green Radar Sweep Beam */}
+      {/* Liquid Green Radar Sweep Beam */}
       {showRadarSweep && (
         <g
           className="radar-sweep-beam"
@@ -251,8 +261,8 @@ export const RadarGrid: React.FC<RadarGridProps> = ({
         >
           <path
             d={`M ${centerX} ${centerY} L ${centerX} ${centerY - 400} A 400 400 0 0 1 ${
-              centerX + 400 * Math.sin(Math.PI / 7)
-            } ${centerY - 400 * Math.cos(Math.PI / 7)} Z`}
+              centerX + 400 * Math.sin(Math.PI / 6.5)
+            } ${centerY - 400 * Math.cos(Math.PI / 6.5)} Z`}
             fill="url(#atc-sweep-green)"
           />
           <line
@@ -260,32 +270,23 @@ export const RadarGrid: React.FC<RadarGridProps> = ({
             y1={centerY}
             x2={centerX}
             y2={centerY - 400}
-            stroke="rgba(74, 222, 128, 0.6)"
-            strokeWidth="1.2"
+            stroke="rgba(134, 239, 172, 0.85)"
+            strokeWidth="1.5"
           />
         </g>
       )}
 
-      {/* Scope Outer Frame in Radar Green & Black */}
-      <rect
-        x={1}
-        y={1}
-        width={width - 2}
-        height={height - 2}
-        fill="none"
-        stroke="rgba(34, 197, 94, 0.3)"
-        strokeWidth="1"
-      />
-      <text x={8} y={15} fill="rgba(34, 197, 94, 0.6)" fontSize="8.5">
+      {/* Scope Corner Telemetry Labels */}
+      <text x={12} y={18} fill="rgba(134, 239, 172, 0.7)" fontSize="8.5" fontWeight="600">
         FIR SECTOR 04 [N42°30' W071°30']
       </text>
-      <text x={width - 8} y={15} fill="rgba(34, 197, 94, 0.6)" fontSize="8.5" textAnchor="end">
+      <text x={width - 12} y={18} fill="rgba(134, 239, 172, 0.7)" fontSize="8.5" textAnchor="end" fontWeight="600">
         RADAR: PR/SSR | POLARIZATION: VERT
       </text>
-      <text x={8} y={height - 8} fill="rgba(34, 197, 94, 0.6)" fontSize="8.5">
+      <text x={12} y={height - 12} fill="rgba(134, 239, 172, 0.7)" fontSize="8.5" fontWeight="600">
         QNH: 1013.25 HPA | FL180-FL450
       </text>
-      <text x={width - 8} y={height - 8} fill="rgba(34, 197, 94, 0.6)" fontSize="8.5" textAnchor="end">
+      <text x={width - 12} y={height - 12} fill="rgba(134, 239, 172, 0.7)" fontSize="8.5" textAnchor="end" fontWeight="600">
         SWEEP: 4.8s | BEARING: MAG
       </text>
     </g>

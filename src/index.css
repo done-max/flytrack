@@ -3,11 +3,11 @@
 @layer base {
   :root {
     --font-mono: 'JetBrains Mono', 'Roboto Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;
-    --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', system-ui, sans-serif;
   }
 
   body {
-    background-color: #000000;
+    background-color: #030705;
     color: #f0fdf4;
     font-family: var(--font-sans);
     margin: 0;
@@ -19,43 +19,172 @@
   }
 }
 
-/* Custom scrollbars with Black/Green ATC styling */
+/* Glassmorphism & Liquid Glass Design System */
+
+.liquid-glass {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.015) 100%), rgba(6, 14, 8, 0.65);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.55),
+              inset 0 1px 1px 0 rgba(255, 255, 255, 0.22),
+              inset 0 -1px 1px 0 rgba(0, 0, 0, 0.4);
+}
+
+.liquid-glass-subtle {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%), rgba(4, 10, 6, 0.55);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.4),
+              inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
+}
+
+.liquid-glass-interactive {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.liquid-glass-interactive:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 100%), rgba(10, 22, 14, 0.75);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 16px 48px 0 rgba(0, 0, 0, 0.6),
+              inset 0 1px 1px 0 rgba(255, 255, 255, 0.3),
+              0 0 20px 0 rgba(34, 197, 94, 0.12);
+  transform: translateY(-1px);
+}
+
+.liquid-glass-interactive:active {
+  transform: translateY(0.5px) scale(0.99);
+}
+
+.liquid-glass-green {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.18) 0%, rgba(16, 185, 129, 0.05) 100%), rgba(4, 18, 8, 0.75);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid rgba(74, 222, 128, 0.35);
+  box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.5),
+              inset 0 1px 1px 0 rgba(134, 239, 172, 0.35),
+              0 0 25px -4px rgba(34, 197, 94, 0.3);
+}
+
+.liquid-glass-red {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.22) 0%, rgba(185, 28, 28, 0.08) 100%), rgba(25, 4, 4, 0.8);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.55),
+              inset 0 1px 1px 0 rgba(254, 202, 202, 0.4),
+              0 0 30px -4px rgba(239, 68, 68, 0.4);
+}
+
+.liquid-glass-amber {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.06) 100%), rgba(24, 14, 4, 0.8);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.5),
+              inset 0 1px 1px 0 rgba(253, 230, 138, 0.35),
+              0 0 25px -4px rgba(245, 158, 11, 0.3);
+}
+
+.liquid-glass-blue {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(59, 130, 246, 0.06) 100%), rgba(4, 16, 32, 0.75);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid rgba(96, 165, 250, 0.35);
+  box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.5),
+              inset 0 1px 1px 0 rgba(147, 197, 253, 0.35),
+              0 0 25px -4px rgba(56, 189, 248, 0.3);
+}
+
+/* iOS Glass Slider Controls */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  height: 6px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6);
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 100%);
+  border: 1.5px solid rgba(34, 197, 94, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 10px rgba(34, 197, 94, 0.5);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.5), 0 0 16px rgba(74, 222, 128, 0.8);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 100%);
+  border: 1.5px solid rgba(34, 197, 94, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 10px rgba(34, 197, 94, 0.5);
+  cursor: pointer;
+}
+
+/* Fluid Liquid Animation Orbs */
+@keyframes ambient-float-1 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  50% {
+    transform: translate(40px, -30px) scale(1.08);
+  }
+}
+
+@keyframes ambient-float-2 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  50% {
+    transform: translate(-35px, 25px) scale(0.95);
+  }
+}
+
+.liquid-orb-1 {
+  animation: ambient-float-1 16s ease-in-out infinite;
+}
+
+.liquid-orb-2 {
+  animation: ambient-float-2 20s ease-in-out infinite;
+}
+
+/* Custom iOS Frosted Scrollbars */
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #020402;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #14532d;
-  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #22c55e;
+  background: rgba(34, 197, 94, 0.4);
 }
 
-/* Critical STCA alert flash */
-@keyframes atc-alert-flash {
-  0%, 100% {
-    opacity: 1;
-    background-color: rgba(220, 38, 38, 0.35);
-    border-color: rgba(239, 68, 68, 1);
-  }
-  50% {
-    opacity: 0.65;
-    background-color: rgba(220, 38, 38, 0.1);
-    border-color: rgba(239, 68, 68, 0.4);
-  }
-}
-
-.atc-conflict-flash {
-  animation: atc-alert-flash 0.9s infinite ease-in-out;
-}
-
+/* Radar Sweep Line Beam */
 @keyframes radar-beam {
   from {
     transform: rotate(0deg);
@@ -70,7 +199,6 @@
   transform-origin: center center;
 }
 
-/* Precision crisp vector rendering */
 svg {
   shape-rendering: geometricPrecision;
   text-rendering: geometricPrecision;

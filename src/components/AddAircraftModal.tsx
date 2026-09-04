@@ -47,43 +47,43 @@ export const AddAircraftModal: React.FC<AddAircraftModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4 font-mono select-none">
-      <div className="bg-[#040704] border border-green-500 rounded-xs max-w-md w-full p-4 shadow-2xl text-slate-200 text-xs">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-2xl p-4 font-sans select-none animate-fade-in">
+      <div className="liquid-glass rounded-3xl max-w-lg w-full p-6 shadow-2xl text-slate-200 text-xs border border-white/20">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#14532d] pb-2.5 mb-3">
+        <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 bg-green-400"></span>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-green-300">
-              INJECT SSR RADAR TARGET
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]"></span>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-300 font-mono">
+              Inject SSR Radar Target
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1 text-slate-400 hover:text-red-400 hover:bg-[#1a0505] rounded-xs transition-colors cursor-pointer"
+            className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-150 cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-2.5">
-          <div className="grid grid-cols-2 gap-2.5">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-slate-400 mb-1 block text-[10px]">CALLSIGN</label>
+              <label className="text-slate-400 mb-1 block text-[10px] font-mono">CALLSIGN</label>
               <input
                 type="text"
                 required
                 value={callsign}
                 onChange={(e) => setCallsign(e.target.value)}
-                className="w-full bg-[#000000] border border-[#14532d] focus:border-green-400 rounded-xs px-2 py-1 text-green-300 outline-none uppercase font-bold"
+                className="w-full liquid-glass-subtle rounded-xl px-3 py-2 text-emerald-300 font-mono font-bold uppercase outline-none focus:border-emerald-400 transition-colors border border-white/10"
               />
             </div>
             <div>
-              <label className="text-slate-400 mb-1 block text-[10px]">ICAO TYPE</label>
+              <label className="text-slate-400 mb-1 block text-[10px] font-mono">ICAO TYPE</label>
               <select
                 value={model}
                 onChange={(e) => setModel(e.target.value)}
-                className="w-full bg-[#000000] border border-[#14532d] focus:border-green-400 rounded-xs px-2 py-1 text-slate-200 outline-none"
+                className="w-full liquid-glass-subtle rounded-xl px-3 py-2 text-slate-200 outline-none focus:border-emerald-400 transition-colors border border-white/10"
               >
                 <option value="B787-9">B787-9 (Heavy)</option>
                 <option value="A350-900">A350-900 (Heavy)</option>
@@ -95,59 +95,59 @@ export const AddAircraftModal: React.FC<AddAircraftModalProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-slate-400 mb-1 block text-[10px]">ORIGIN (ICAO/IATA)</label>
+              <label className="text-slate-400 mb-1 block text-[10px] font-mono">ORIGIN (ICAO/IATA)</label>
               <input
                 type="text"
                 value={origin}
                 onChange={(e) => setOrigin(e.target.value)}
                 maxLength={4}
-                className="w-full bg-[#000000] border border-[#14532d] focus:border-green-400 rounded-xs px-2 py-1 text-blue-300 outline-none uppercase"
+                className="w-full liquid-glass-subtle rounded-xl px-3 py-2 text-sky-300 font-mono font-bold uppercase outline-none focus:border-sky-400 transition-colors border border-white/10"
               />
             </div>
             <div>
-              <label className="text-slate-400 mb-1 block text-[10px]">DESTINATION (ICAO/IATA)</label>
+              <label className="text-slate-400 mb-1 block text-[10px] font-mono">DESTINATION (ICAO/IATA)</label>
               <input
                 type="text"
                 value={destination}
                 onChange={(e) => setDestination(e.target.value)}
                 maxLength={4}
-                className="w-full bg-[#000000] border border-[#14532d] focus:border-green-400 rounded-xs px-2 py-1 text-blue-300 outline-none uppercase"
+                className="w-full liquid-glass-subtle rounded-xl px-3 py-2 text-sky-300 font-mono font-bold uppercase outline-none focus:border-sky-400 transition-colors border border-white/10"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-slate-400 mb-1 block text-[10px]">INITIAL X [0-1000]</label>
+              <label className="text-slate-400 mb-1 block text-[10px] font-mono">INITIAL X [0-1000]</label>
               <input
                 type="number"
                 min="20"
                 max="980"
                 value={x}
                 onChange={(e) => setX(Number(e.target.value))}
-                className="w-full bg-[#000000] border border-[#14532d] focus:border-green-400 rounded-xs px-2 py-1 text-slate-200 outline-none"
+                className="w-full liquid-glass-subtle rounded-xl px-3 py-2 text-white font-mono outline-none focus:border-emerald-400 transition-colors border border-white/10"
               />
             </div>
             <div>
-              <label className="text-slate-400 mb-1 block text-[10px]">INITIAL Y [0-750]</label>
+              <label className="text-slate-400 mb-1 block text-[10px] font-mono">INITIAL Y [0-750]</label>
               <input
                 type="number"
                 min="20"
                 max="730"
                 value={y}
                 onChange={(e) => setY(Number(e.target.value))}
-                className="w-full bg-[#000000] border border-[#14532d] focus:border-green-400 rounded-xs px-2 py-1 text-slate-200 outline-none"
+                className="w-full liquid-glass-subtle rounded-xl px-3 py-2 text-white font-mono outline-none focus:border-emerald-400 transition-colors border border-white/10"
               />
             </div>
           </div>
 
           {/* Heading */}
-          <div>
-            <div className="flex justify-between mb-0.5 text-[11px]">
-              <span className="text-slate-400">HEADING (TRACK)</span>
-              <span className="text-green-300 font-bold">{heading}° MAG</span>
+          <div className="liquid-glass-subtle p-3 rounded-2xl border border-white/10">
+            <div className="flex justify-between mb-1 text-[11px]">
+              <span className="text-slate-300 font-medium">Heading (Track)</span>
+              <span className="text-emerald-300 font-mono font-bold">{heading}° MAG</span>
             </div>
             <input
               type="range"
@@ -155,15 +155,15 @@ export const AddAircraftModal: React.FC<AddAircraftModalProps> = ({
               max="359"
               value={heading}
               onChange={(e) => setHeading(Number(e.target.value))}
-              className="w-full h-1 bg-slate-900 rounded appearance-none cursor-pointer accent-green-400"
+              className="w-full cursor-pointer"
             />
           </div>
 
           {/* Speed */}
-          <div>
-            <div className="flex justify-between mb-0.5 text-[11px]">
-              <span className="text-slate-400">GROUND SPEED</span>
-              <span className="text-green-300 font-bold">{speed} KTS</span>
+          <div className="liquid-glass-subtle p-3 rounded-2xl border border-white/10">
+            <div className="flex justify-between mb-1 text-[11px]">
+              <span className="text-slate-300 font-medium">Ground Speed</span>
+              <span className="text-emerald-300 font-mono font-bold">{speed} KTS</span>
             </div>
             <input
               type="range"
@@ -172,15 +172,15 @@ export const AddAircraftModal: React.FC<AddAircraftModalProps> = ({
               step="10"
               value={speed}
               onChange={(e) => setSpeed(Number(e.target.value))}
-              className="w-full h-1 bg-slate-900 rounded appearance-none cursor-pointer accent-green-400"
+              className="w-full cursor-pointer"
             />
           </div>
 
           {/* Altitude */}
-          <div>
-            <div className="flex justify-between mb-0.5 text-[11px]">
-              <span className="text-slate-400">CLEARED FLIGHT LEVEL</span>
-              <span className="text-green-300 font-bold">
+          <div className="liquid-glass-subtle p-3 rounded-2xl border border-white/10">
+            <div className="flex justify-between mb-1 text-[11px]">
+              <span className="text-slate-300 font-medium">Cleared Flight Level</span>
+              <span className="text-emerald-300 font-mono font-bold">
                 FL{Math.round(altitude / 100)} ({altitude.toLocaleString()} FT)
               </span>
             </div>
@@ -191,25 +191,25 @@ export const AddAircraftModal: React.FC<AddAircraftModalProps> = ({
               step="1000"
               value={altitude}
               onChange={(e) => setAltitude(Number(e.target.value))}
-              className="w-full h-1 bg-slate-900 rounded appearance-none cursor-pointer accent-green-400"
+              className="w-full cursor-pointer"
             />
           </div>
 
           {/* Submit */}
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#14532d] mt-1">
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-white/10 mt-1">
             <button
               type="button"
               onClick={onClose}
-              className="px-2.5 py-1 text-slate-400 hover:text-slate-200 cursor-pointer"
+              className="px-4 py-2 text-slate-400 hover:text-white liquid-glass-subtle rounded-xl transition-colors cursor-pointer border border-white/10"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex items-center gap-1 px-3 py-1 bg-[#15803d] hover:bg-[#16a34a] text-black font-bold rounded-xs transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-5 py-2 liquid-glass-green text-emerald-100 font-bold rounded-xl transition-all duration-200 cursor-pointer shadow-lg active:scale-95"
             >
-              <PlusCircle className="w-3.5 h-3.5" />
-              INJECT TO SCOPE
+              <PlusCircle className="w-4 h-4 text-emerald-300" />
+              <span>Inject Target</span>
             </button>
           </div>
         </form>

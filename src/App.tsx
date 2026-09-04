@@ -149,8 +149,13 @@ export const App: React.FC = () => {
   );
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-[#000000] text-slate-200 overflow-hidden font-mono select-none">
-      {/* Top Operations Header in Black & Green */}
+    <div className="relative flex flex-col h-screen w-screen bg-[#030705] text-slate-200 overflow-hidden font-sans select-none">
+      {/* Background Liquid Ambient Light Orbs */}
+      <div className="absolute top-1/4 left-1/6 w-96 h-96 rounded-full bg-emerald-600/10 blur-[130px] pointer-events-none liquid-orb-1" />
+      <div className="absolute bottom-1/4 right-1/5 w-[30rem] h-[30rem] rounded-full bg-sky-600/8 blur-[150px] pointer-events-none liquid-orb-2" />
+      <div className="absolute top-2/3 left-1/3 w-80 h-80 rounded-full bg-teal-500/10 blur-[120px] pointer-events-none" />
+
+      {/* Top Operations Header Floating Glass Pill */}
       <TopNav
         isRunning={settings.isRunning}
         simSpeed={settings.simSpeed}
@@ -161,9 +166,9 @@ export const App: React.FC = () => {
       />
 
       {/* Main Tactical Workstation Deck */}
-      <div className="flex-1 flex overflow-hidden p-2 gap-2">
+      <div className="flex-1 flex overflow-hidden p-3 gap-3">
         {/* Left Side: Master Console & Strip Rack */}
-        <div className="w-80 flex flex-col gap-2 overflow-y-auto shrink-0 pr-0.5">
+        <div className="w-80 flex flex-col gap-3 overflow-y-auto shrink-0 pr-0.5 z-10">
           <ControlPanel
             settings={settings}
             activeScenarioId={activeScenario.id}
@@ -184,7 +189,7 @@ export const App: React.FC = () => {
         </div>
 
         {/* Center: Primary Radar Airspace Scope */}
-        <div className="flex-1 flex flex-col min-w-0 h-full relative">
+        <div className="flex-1 flex flex-col min-w-0 h-full relative z-10">
           <Airspace
             aircraft={aircraftList}
             selectedAircraftId={selectedAircraftId}
@@ -193,59 +198,59 @@ export const App: React.FC = () => {
             onSelectAircraft={handleSelectAircraft}
           />
 
-          {/* Bottom Tactical Separation Safety Bar */}
-          <div className="mt-1.5 bg-[#040704] border border-[#14532d] px-3 py-1.5 rounded-xs flex items-center justify-between text-xs">
+          {/* Bottom Tactical Separation Safety Bar (Floating Liquid Glass Pill) */}
+          <div className="mt-2 liquid-glass px-4 py-2 rounded-2xl flex items-center justify-between text-xs shadow-2xl">
             <div className="flex items-center gap-3">
-              <span className="text-green-500 font-bold text-[10px]">
+              <span className="text-emerald-400 font-bold text-[10px] font-mono tracking-wider">
                 STCA SEPARATION SAFETY STATUS:
               </span>
 
               {criticalConflicts.length > 0 ? (
-                <span className="flex items-center gap-1.5 text-red-300 font-bold bg-[#1a0505] px-2 py-0.5 rounded-xs border border-red-500 text-[11px] animate-pulse">
-                  <AlertTriangle className="w-3 h-3 text-red-400" />
+                <span className="flex items-center gap-1.5 text-red-200 font-bold liquid-glass-red px-3 py-1 rounded-xl text-[11px] font-mono animate-pulse shadow-lg">
+                  <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
                   STCA ALERT: {criticalConflicts[0].aircraftA.callsign} ⚡{' '}
-                  {criticalConflicts[0].aircraftB.callsign} — PREDICTED LOSS OF SEPARATION IN{' '}
+                  {criticalConflicts[0].aircraftB.callsign} — LOSS OF SEPARATION IN{' '}
                   {criticalConflicts[0].timeToClosestApproach}s
                 </span>
               ) : warningConflicts.length > 0 ? (
-                <span className="flex items-center gap-1.5 text-amber-300 font-semibold bg-[#1a1405] px-2 py-0.5 rounded-xs border border-amber-500 text-[11px]">
-                  <AlertTriangle className="w-3 h-3 text-amber-400" />
+                <span className="flex items-center gap-1.5 text-amber-200 font-semibold liquid-glass-amber px-3 py-1 rounded-xl text-[11px] font-mono shadow-md">
+                  <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
                   CONVERGING TRAFFIC: {warningConflicts[0].aircraftA.callsign} &{' '}
                   {warningConflicts[0].aircraftB.callsign} — CPA {warningConflicts[0].predictedClosestDistance}PX IN{' '}
                   {warningConflicts[0].timeToClosestApproach}s
                 </span>
               ) : (
-                <span className="flex items-center gap-1.5 text-green-400 font-semibold bg-[#051805] px-2 py-0.5 rounded-xs border border-green-600 text-[11px]">
-                  <CheckCircle className="w-3 h-3 text-green-400" />
+                <span className="flex items-center gap-1.5 text-emerald-200 font-semibold liquid-glass-green px-3 py-1 rounded-xl text-[11px] font-mono shadow-md">
+                  <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
                   AIRWAYS NOMINAL — STANDARD 5 NM / 1,000 FT SEPARATION MAINTAINED ({conflictSummary.totalPairsChecked} PAIRS MONITORED)
                 </span>
               )}
             </div>
 
-            {/* Tactical Status Legend (Green / Amber / Red / Blue) */}
-            <div className="hidden xl:flex items-center gap-3 text-[10px] text-slate-400">
-              <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-xs bg-[#22c55e] inline-block"></span>
-                <span className="text-green-400">NOMINAL</span>
+            {/* Tactical Status Legend (Translucent Glass Indicators) */}
+            <div className="hidden xl:flex items-center gap-3.5 text-[10px] text-slate-300 font-mono">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] inline-block"></span>
+                <span className="text-emerald-300 font-medium">NOMINAL</span>
               </span>
-              <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-xs bg-amber-400 inline-block"></span>
-                <span className="text-amber-400">CAUTION</span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)] inline-block"></span>
+                <span className="text-amber-300 font-medium">CAUTION</span>
               </span>
-              <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-xs bg-red-500 inline-block"></span>
-                <span className="text-red-400">STCA ALERT</span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)] inline-block"></span>
+                <span className="text-red-300 font-medium">STCA ALERT</span>
               </span>
-              <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-xs bg-[#38bdf8] inline-block"></span>
-                <span className="text-blue-400">HOOKED TARGET</span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)] inline-block"></span>
+                <span className="text-sky-300 font-medium">HOOKED</span>
               </span>
             </div>
           </div>
         </div>
 
         {/* Right Side: Target Inspector & Vector Clearance Editor */}
-        <div className="w-84 flex flex-col gap-2 overflow-y-auto shrink-0 pl-0.5">
+        <div className="w-84 flex flex-col gap-3 overflow-y-auto shrink-0 pl-0.5 z-10">
           <AircraftInfo
             aircraft={selectedAircraft}
             activeConflict={activeConflictForSelected}
