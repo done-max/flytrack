@@ -6,6 +6,18 @@ import type {
   CollisionRiskLevel,
   CollisionThresholds,
 } from '../types/collision';
+import type {
+  AircraftWeatherInteraction,
+  WeatherEvent,
+  WeatherRiskLevel,
+  WeatherSummary,
+  WeatherZone,
+} from '../types/weather';
+import type {
+  DynamicAirspaceSector,
+  RestrictedZone,
+  UnifiedAircraftSafety,
+} from '../types/safety';
 import { stepAircraft } from './aircraft';
 import {
   DEFAULT_COLLISION_THRESHOLDS,
@@ -14,12 +26,21 @@ import {
 } from './collision';
 import { calculateVelocity } from './movement';
 import { calculatePredictedTrajectory } from './trajectory';
+import { evaluateAirspaceWeather } from '../weather/weatherPrediction';
+import {
+  evaluateUnifiedAirspaceSafety,
+  generateDynamicAirspaceGrid,
+} from '../weather/airspaceSafety';
 
 export type SimulationTickListener = (
   aircraft: Aircraft[],
   simTimeSeconds: number,
   conflictSummary: AirspaceConflictSummary,
-  events: CollisionEvent[]
+  collisionEvents: CollisionEvent[],
+  weatherSummary: WeatherSummary,
+  unifiedSafetyMap: Map<string, UnifiedAircraftSafety>,
+  dynamicAirspaceSectors: DynamicAirspaceSector[],
+  weatherEvents: WeatherEvent[]
 ) => void;
 
 export class SimulationEngine {
@@ -35,10 +56,30 @@ export class SimulationEngine {
     conflicts: [],
   };
 
-  private events: CollisionEvent[] = [];
+  private weatherZones: WeatherZone[] = [];
+  private restrictedZones: RestrictedZone[] = [];
+  private weatherSummary: WeatherSummary = {
+    totalZones: 0,
+    activeZones: 0,
+    stormCount: 0,
+    highRiskZonesCount: 0,
+    affectedAircraftCount: 0,
+    highestWeatherRisk: 'SAFE',
+    zoneInteractions: [],
+  };
+
+  private unifiedSafetyMap: Map<string, UnifiedAircraftSafety> = new Map();
+  private dynamicAirspaceSectors: DynamicAirspaceSector[] = [];
+
+  private collisionEvents: CollisionEvent[] = [];
+  private weatherEvents: WeatherEvent[] = [];
   private activeConflictsMap: Map<
     string,
     { risk: CollisionRiskLevel; pairA: Aircraft; pairB: Aircraft }
+  > = new Map();
+  private activeWeatherMap: Map<
+    string,
+    { risk: WeatherRiskLevel; currentExposure: boolean; callsign: string; zoneName: string }
   > = new Map();
 
   private settings: SimulationSettings = {
@@ -50,6 +91,8 @@ export class SimulationEngine {
     showLabels: true,
     showRangeRings: true,
     showSectorGrid: true,
+    showWeatherOverlay: true,
+    showAirspaceSafetyGrid: false,
     radarSweep: true,
     trajectoryPredictionSeconds: 60,
     maxTrailPoints: 40,
@@ -70,9 +113,13 @@ export class SimulationEngine {
 
   constructor(
     initialAircraft: Aircraft[] = [],
+    initialWeatherZones: WeatherZone[] = [],
+    initialRestrictedZones: RestrictedZone[] = [],
     customThresholds?: Partial<CollisionThresholds>
   ) {
     this.aircraft = [...initialAircraft];
+    this.weatherZones = [...initialWeatherZones];
+    this.restrictedZones = [...initialRestrictedZones];
     if (customThresholds) {
       this.thresholds = { ...DEFAULT_COLLISION_THRESHOLDS, ...customThresholds };
     }
@@ -80,7 +127,16 @@ export class SimulationEngine {
 
   public subscribe(listener: SimulationTickListener): () => void {
     this.listeners.add(listener);
-    listener(this.aircraft, this.settings.simTimeSeconds, this.conflictSummary, this.events);
+    listener(
+      this.aircraft,
+      this.settings.simTimeSeconds,
+      this.conflictSummary,
+      this.collisionEvents,
+      this.weatherSummary,
+      this.unifiedSafetyMap,
+      this.dynamicAirspaceSectors,
+      this.weatherEvents
+    );
     return () => {
       this.listeners.delete(listener);
     };
@@ -88,7 +144,16 @@ export class SimulationEngine {
 
   private notify() {
     for (const listener of this.listeners) {
-      listener(this.aircraft, this.settings.simTimeSeconds, this.conflictSummary, this.events);
+      listener(
+        this.aircraft,
+        this.settings.simTimeSeconds,
+        this.conflictSummary,
+        this.collisionEvents,
+        this.weatherSummary,
+        this.unifiedSafetyMap,
+        this.dynamicAirspaceSectors,
+        this.weatherEvents
+      );
     }
   }
 
@@ -120,11 +185,24 @@ export class SimulationEngine {
     this.settings.simSpeed = speedMultiplier;
   }
 
-  public reset(newAircraftList?: Aircraft[]) {
+  public reset(
+    newAircraftList?: Aircraft[],
+    newWeatherZones?: WeatherZone[],
+    newRestrictedZones?: RestrictedZone[]
+  ) {
     this.pause();
     this.settings.simTimeSeconds = 0;
-    this.events = [];
+    this.collisionEvents = [];
+    this.weatherEvents = [];
     this.activeConflictsMap.clear();
+    this.activeWeatherMap.clear();
+
+    if (newWeatherZones !== undefined) {
+      this.weatherZones = [...newWeatherZones];
+    }
+    if (newRestrictedZones !== undefined) {
+      this.restrictedZones = [...newRestrictedZones];
+    }
 
     if (newAircraftList) {
       this.aircraft = newAircraftList.map((ac) => ({
@@ -182,30 +260,52 @@ export class SimulationEngine {
       return updated;
     });
 
-    // Re-evaluate conflicts immediately upon manual clearance modification
-    this.conflictSummary = detectAirspaceCollisions(this.aircraft, this.thresholds);
-    this.processConflictEvents(this.conflictSummary.conflicts);
-
-    const statusMap = deriveAircraftStatusMap(this.aircraft, this.conflictSummary.conflicts);
-    this.aircraft = this.aircraft.map((ac) => ({
-      ...ac,
-      status: statusMap.get(ac.id) || 'NORMAL',
-    }));
-
+    // Re-evaluate conflicts and weather immediately upon manual control
+    this.evaluateAirspaceState();
     this.notify();
   }
 
   public addAircraft(newAc: Aircraft) {
     this.aircraft = [...this.aircraft, newAc];
-    this.conflictSummary = detectAirspaceCollisions(this.aircraft, this.thresholds);
-    this.processConflictEvents(this.conflictSummary.conflicts);
+    this.evaluateAirspaceState();
     this.notify();
   }
 
   public removeAircraft(id: string) {
     this.aircraft = this.aircraft.filter((ac) => ac.id !== id);
-    this.conflictSummary = detectAirspaceCollisions(this.aircraft, this.thresholds);
-    this.processConflictEvents(this.conflictSummary.conflicts);
+    this.evaluateAirspaceState();
+    this.notify();
+  }
+
+  public getWeatherZones(): WeatherZone[] {
+    return [...this.weatherZones];
+  }
+
+  public setWeatherZones(zones: WeatherZone[]) {
+    this.weatherZones = [...zones];
+    this.evaluateAirspaceState();
+    this.notify();
+  }
+
+  public toggleWeatherZone(zoneId: string, isActive?: boolean) {
+    this.weatherZones = this.weatherZones.map((z) => {
+      if (z.id !== zoneId) return z;
+      return {
+        ...z,
+        isActive: isActive !== undefined ? isActive : !z.isActive,
+      };
+    });
+    this.evaluateAirspaceState();
+    this.notify();
+  }
+
+  public getRestrictedZones(): RestrictedZone[] {
+    return [...this.restrictedZones];
+  }
+
+  public setRestrictedZones(zones: RestrictedZone[]) {
+    this.restrictedZones = [...zones];
+    this.evaluateAirspaceState();
     this.notify();
   }
 
@@ -221,12 +321,33 @@ export class SimulationEngine {
     return { ...this.conflictSummary };
   }
 
+  public getWeatherSummary(): WeatherSummary {
+    return { ...this.weatherSummary };
+  }
+
+  public getUnifiedSafetyMap(): Map<string, UnifiedAircraftSafety> {
+    return new Map(this.unifiedSafetyMap);
+  }
+
+  public getDynamicAirspaceSectors(): DynamicAirspaceSector[] {
+    return [...this.dynamicAirspaceSectors];
+  }
+
+  public getCollisionEvents(): CollisionEvent[] {
+    return [...this.collisionEvents];
+  }
+
   public getEvents(): CollisionEvent[] {
-    return [...this.events];
+    return [...this.collisionEvents];
+  }
+
+  public getWeatherEvents(): WeatherEvent[] {
+    return [...this.weatherEvents];
   }
 
   public clearEvents() {
-    this.events = [];
+    this.collisionEvents = [];
+    this.weatherEvents = [];
     this.notify();
   }
 
@@ -236,13 +357,17 @@ export class SimulationEngine {
 
   public setThresholds(updates: Partial<CollisionThresholds>) {
     this.thresholds = { ...this.thresholds, ...updates };
-    this.conflictSummary = detectAirspaceCollisions(this.aircraft, this.thresholds);
-    this.processConflictEvents(this.conflictSummary.conflicts);
+    this.evaluateAirspaceState();
     this.notify();
   }
 
   public getSettings(): SimulationSettings {
     return { ...this.settings };
+  }
+
+  public updateSettings(newSettings: Partial<SimulationSettings>) {
+    this.settings = { ...this.settings, ...newSettings };
+    this.notify();
   }
 
   public getBounds(): AirspaceDimensions {
@@ -259,7 +384,6 @@ export class SimulationEngine {
     const elapsedMs = timestamp - (this.lastTimestamp || timestamp);
     this.lastTimestamp = timestamp;
 
-    // Convert to seconds, clamped between 0.001 and 0.1s to avoid physics lag spikes
     const deltaSeconds = Math.min(Math.max(elapsedMs / 1000, 0.001), 0.1);
 
     this.updateTick(deltaSeconds);
@@ -273,7 +397,7 @@ export class SimulationEngine {
     this.settings.simTimeSeconds += effectiveDelta;
 
     // 1. Advance movement & history for all aircraft
-    let updated = this.aircraft.map((ac) =>
+    this.aircraft = this.aircraft.map((ac) =>
       stepAircraft(
         ac,
         deltaSeconds,
@@ -284,22 +408,58 @@ export class SimulationEngine {
       )
     );
 
-    // 2. Deterministic mathematical pairwise collision detection
-    this.conflictSummary = detectAirspaceCollisions(updated, this.thresholds);
+    // 2. Perform multi-factor airspace evaluation
+    this.evaluateAirspaceState();
+  }
+
+  private evaluateAirspaceState() {
+    // 1. Deterministic mathematical pairwise collision detection
+    this.conflictSummary = detectAirspaceCollisions(this.aircraft, this.thresholds);
     this.processConflictEvents(this.conflictSummary.conflicts);
 
-    const statusMap = deriveAircraftStatusMap(updated, this.conflictSummary.conflicts);
+    // 2. Deterministic analytical weather interaction evaluation
+    this.weatherSummary = evaluateAirspaceWeather(
+      this.aircraft,
+      this.weatherZones,
+      this.thresholds.lookaheadTimeSeconds
+    );
+    this.processWeatherEvents(this.weatherSummary.zoneInteractions);
 
-    // 3. Assign dynamic risk statuses
-    updated = updated.map((ac) => {
-      const dynamicRisk = statusMap.get(ac.id) || 'NORMAL';
+    // 3. Unified multi-factor safety evaluation
+    this.unifiedSafetyMap = evaluateUnifiedAirspaceSafety(
+      this.aircraft,
+      this.conflictSummary.conflicts,
+      this.weatherSummary.zoneInteractions
+    );
+
+    // 4. Update core aircraft status badges
+    const statusMap = deriveAircraftStatusMap(this.aircraft, this.conflictSummary.conflicts);
+    this.aircraft = this.aircraft.map((ac) => {
+      const unified = this.unifiedSafetyMap.get(ac.id);
+      let status = statusMap.get(ac.id) || 'NORMAL';
+
+      // Elevate status if weather risk is critical/high
+      if (unified) {
+        if (unified.overallSafety === 'CRITICAL') status = 'CRITICAL';
+        else if (unified.overallSafety === 'HIGH_RISK' && status !== 'CRITICAL') status = 'HIGH_RISK';
+        else if (unified.overallSafety === 'WARNING' && status === 'NORMAL') status = 'CAUTION';
+      }
+
       return {
         ...ac,
-        status: dynamicRisk,
+        status,
       };
     });
 
-    this.aircraft = updated;
+    // 5. Compute dynamic safe airspace grid
+    this.dynamicAirspaceSectors = generateDynamicAirspaceGrid(
+      this.bounds.width,
+      this.bounds.height,
+      this.weatherZones,
+      this.restrictedZones,
+      this.conflictSummary.conflicts,
+      this.aircraft
+    );
   }
 
   private processConflictEvents(currentConflicts: CollisionPrediction[]) {
@@ -321,7 +481,6 @@ export class SimulationEngine {
       const prev = this.activeConflictsMap.get(pairKey);
 
       if (!prev) {
-        // New Conflict Detected
         this.activeConflictsMap.set(pairKey, {
           risk: conflict.collisionRisk,
           pairA: conflict.aircraftA,
@@ -329,7 +488,7 @@ export class SimulationEngine {
         });
 
         const newEvent: CollisionEvent = {
-          id: `evt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+          id: `evt_c_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
           timestamp: Date.now(),
           simTimeSeconds: Math.round(this.settings.simTimeSeconds),
           type: 'CONFLICT_DETECTED',
@@ -352,9 +511,8 @@ export class SimulationEngine {
           message: `Separation conflict detected between ${conflict.aircraftA.callsign} & ${conflict.aircraftB.callsign} (${conflict.collisionRisk}, CPA: ${conflict.predictedClosestDistance}px in ${conflict.timeToClosestApproach}s)`,
         };
 
-        this.events = [newEvent, ...this.events].slice(0, 50);
+        this.collisionEvents = [newEvent, ...this.collisionEvents].slice(0, 50);
       } else if (severityRank[conflict.collisionRisk] > severityRank[prev.risk]) {
-        // Risk Escalated
         this.activeConflictsMap.set(pairKey, {
           risk: conflict.collisionRisk,
           pairA: conflict.aircraftA,
@@ -362,7 +520,7 @@ export class SimulationEngine {
         });
 
         const newEvent: CollisionEvent = {
-          id: `evt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+          id: `evt_c_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
           timestamp: Date.now(),
           simTimeSeconds: Math.round(this.settings.simTimeSeconds),
           type: 'RISK_ESCALATED',
@@ -385,18 +543,16 @@ export class SimulationEngine {
           message: `Conflict severity escalated to ${conflict.collisionRisk} for ${conflict.aircraftA.callsign} & ${conflict.aircraftB.callsign} (CPA: ${conflict.predictedClosestDistance}px in ${conflict.timeToClosestApproach}s)`,
         };
 
-        this.events = [newEvent, ...this.events].slice(0, 50);
+        this.collisionEvents = [newEvent, ...this.collisionEvents].slice(0, 50);
       }
     }
 
-    // Check for resolved conflicts
     for (const [pairKey, prevData] of this.activeConflictsMap.entries()) {
       if (!currentPairKeys.has(pairKey)) {
-        // Conflict has resolved
         this.activeConflictsMap.delete(pairKey);
 
         const newEvent: CollisionEvent = {
-          id: `evt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+          id: `evt_c_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
           timestamp: Date.now(),
           simTimeSeconds: Math.round(this.settings.simTimeSeconds),
           type: 'CONFLICT_RESOLVED',
@@ -419,7 +575,109 @@ export class SimulationEngine {
           message: `Separation conflict resolved between ${prevData.pairA.callsign} & ${prevData.pairB.callsign} — safe radar separation restored`,
         };
 
-        this.events = [newEvent, ...this.events].slice(0, 50);
+        this.collisionEvents = [newEvent, ...this.collisionEvents].slice(0, 50);
+      }
+    }
+  }
+
+  private processWeatherEvents(currentInteractions: AircraftWeatherInteraction[]) {
+    const currentKeys = new Set<string>();
+
+    for (const inter of currentInteractions) {
+      if (inter.weatherRisk === 'SAFE' && !inter.currentExposure) continue;
+
+      const key = `${inter.aircraftId}_${inter.weatherZoneId}`;
+      currentKeys.add(key);
+
+      const prev = this.activeWeatherMap.get(key);
+
+      if (!prev) {
+        // Initial Warning or Zone Entry
+        this.activeWeatherMap.set(key, {
+          risk: inter.weatherRisk,
+          currentExposure: inter.currentExposure,
+          callsign: inter.aircraftCallsign,
+          zoneName: inter.zoneName,
+        });
+
+        const eventType = inter.currentExposure
+          ? 'AIRCRAFT_ENTERED_DANGER_ZONE'
+          : 'WEATHER_WARNING';
+
+        const newEvent: WeatherEvent = {
+          id: `evt_w_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+          timestamp: Date.now(),
+          simTimeSeconds: Math.round(this.settings.simTimeSeconds),
+          type: eventType,
+          aircraftId: inter.aircraftId,
+          aircraftCallsign: inter.aircraftCallsign,
+          weatherZoneId: inter.weatherZoneId,
+          zoneName: inter.zoneName,
+          weatherRisk: inter.weatherRisk,
+          distanceToZone: inter.distanceToZone,
+          timeToEntry: inter.timeToEntry,
+          message: inter.currentExposure
+            ? `Target ${inter.aircraftCallsign} entered hazardous weather: ${inter.zoneName} (${inter.weatherRisk})`
+            : `Weather alert: ${inter.aircraftCallsign} approaching ${inter.zoneName} in ${inter.timeToEntry}s (${inter.weatherRisk})`,
+        };
+
+        this.weatherEvents = [newEvent, ...this.weatherEvents].slice(0, 50);
+      } else if (!prev.currentExposure && inter.currentExposure) {
+        // Transitioned from approaching to inside
+        this.activeWeatherMap.set(key, {
+          ...prev,
+          currentExposure: true,
+          risk: inter.weatherRisk,
+        });
+
+        const newEvent: WeatherEvent = {
+          id: `evt_w_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+          timestamp: Date.now(),
+          simTimeSeconds: Math.round(this.settings.simTimeSeconds),
+          type: 'AIRCRAFT_ENTERED_DANGER_ZONE',
+          aircraftId: inter.aircraftId,
+          aircraftCallsign: inter.aircraftCallsign,
+          weatherZoneId: inter.weatherZoneId,
+          zoneName: inter.zoneName,
+          weatherRisk: inter.weatherRisk,
+          distanceToZone: 0,
+          timeToEntry: 0,
+          message: `Target ${inter.aircraftCallsign} entered active weather boundary: ${inter.zoneName} (${inter.weatherRisk})`,
+        };
+
+        this.weatherEvents = [newEvent, ...this.weatherEvents].slice(0, 50);
+      }
+    }
+
+    // Check resolved weather hazards
+    for (const [key, prevData] of this.activeWeatherMap.entries()) {
+      if (!currentKeys.has(key)) {
+        this.activeWeatherMap.delete(key);
+
+        const eventType = prevData.currentExposure
+          ? 'AIRCRAFT_EXITED_DANGER_ZONE'
+          : 'WEATHER_RISK_RESOLVED';
+
+        const [acId, zId] = key.split('_');
+
+        const newEvent: WeatherEvent = {
+          id: `evt_w_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+          timestamp: Date.now(),
+          simTimeSeconds: Math.round(this.settings.simTimeSeconds),
+          type: eventType,
+          aircraftId: acId,
+          aircraftCallsign: prevData.callsign,
+          weatherZoneId: zId,
+          zoneName: prevData.zoneName,
+          weatherRisk: 'SAFE',
+          distanceToZone: 0,
+          timeToEntry: null,
+          message: prevData.currentExposure
+            ? `${prevData.callsign} exited ${prevData.zoneName} — returned to clear airspace`
+            : `${prevData.callsign} weather hazard resolved for ${prevData.zoneName} — path clear`,
+        };
+
+        this.weatherEvents = [newEvent, ...this.weatherEvents].slice(0, 50);
       }
     }
   }

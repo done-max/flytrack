@@ -9,6 +9,7 @@ import {
   AlertTriangle,
   Zap,
   CheckCircle2,
+  CloudLightning,
 } from 'lucide-react';
 
 interface ControlPanelProps {
@@ -137,6 +138,34 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         </label>
         <div className="grid grid-cols-2 gap-1.5">
           <button
+            onClick={() => onUpdateSettings({ showWeatherOverlay: !settings.showWeatherOverlay })}
+            className={`flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-150 cursor-pointer border ${
+              settings.showWeatherOverlay
+                ? 'liquid-glass-subtle text-white border-white/30 shadow-[0_0_10px_rgba(255,255,255,0.1)]'
+                : 'liquid-glass-subtle text-slate-400 border-white/5 hover:border-white/20'
+            }`}
+          >
+            <span className="text-[11px]">Weather Radar</span>
+            <span className={`text-[10px] font-mono font-bold ${settings.showWeatherOverlay ? 'text-sky-300' : 'text-slate-500'}`}>
+              {settings.showWeatherOverlay ? 'ON' : 'OFF'}
+            </span>
+          </button>
+
+          <button
+            onClick={() => onUpdateSettings({ showAirspaceSafetyGrid: !settings.showAirspaceSafetyGrid })}
+            className={`flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-150 cursor-pointer border ${
+              settings.showAirspaceSafetyGrid
+                ? 'liquid-glass-subtle text-white border-white/30 shadow-[0_0_10px_rgba(255,255,255,0.1)]'
+                : 'liquid-glass-subtle text-slate-400 border-white/5 hover:border-white/20'
+            }`}
+          >
+            <span className="text-[11px]">Safety Heatmap</span>
+            <span className={`text-[10px] font-mono font-bold ${settings.showAirspaceSafetyGrid ? 'text-sky-300' : 'text-slate-500'}`}>
+              {settings.showAirspaceSafetyGrid ? 'ON' : 'OFF'}
+            </span>
+          </button>
+
+          <button
             onClick={() => onUpdateSettings({ showTrails: !settings.showTrails })}
             className={`flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-150 cursor-pointer border ${
               settings.showTrails
@@ -194,24 +223,23 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         </div>
       </div>
 
-      {/* Operational Test Scenarios (All 5 Scenarios) */}
+      {/* Operational Test Scenarios (All Phase 2 & Phase 3 Scenarios) */}
       <div className="border-t border-white/10 pt-2.5">
         <label className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold block mb-1.5 font-mono">
-          Airspace Traffic Scenarios (5 Test Cases)
+          Airspace & Weather Scenarios ({Object.keys(SCENARIOS).length} Tests)
         </label>
-        <div className="flex flex-col gap-1.5 max-h-[280px] overflow-y-auto pr-0.5">
+        <div className="flex flex-col gap-1.5 max-h-[260px] overflow-y-auto pr-0.5">
           {Object.values(SCENARIOS).map((scenario) => {
             const isSelected = activeScenarioId === scenario.id;
-            const isConflictScenario =
-              scenario.id === 'scenario_conflict' || scenario.id === 'scenario_headon';
-            const isSafeScenario =
-              scenario.id === 'scenario_safe' || scenario.id === 'scenario_altitude';
+            const isWeatherScenario = scenario.id.startsWith('scenario_weather');
+            const isConflict = scenario.id === 'scenario_conflict' || scenario.id === 'scenario_headon';
+            const isSafe = scenario.id === 'scenario_safe' || scenario.id === 'scenario_altitude' || scenario.id === 'scenario_weather_clear';
 
             return (
               <button
                 key={scenario.id}
                 onClick={() => onSelectScenario(scenario)}
-                className={`text-left p-3 rounded-2xl transition-all duration-200 cursor-pointer border ${
+                className={`text-left p-2.5 rounded-2xl transition-all duration-200 cursor-pointer border ${
                   isSelected
                     ? 'liquid-glass-active text-white border-white/40 shadow-[0_0_15px_rgba(255,255,255,0.15)]'
                     : 'liquid-glass-subtle text-slate-400 hover:text-slate-200 border-white/5 hover:border-white/20'
@@ -221,12 +249,17 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                   <span className="text-xs font-bold text-white">
                     {scenario.name}
                   </span>
-                  {isConflictScenario ? (
+                  {isWeatherScenario ? (
+                    <span className="flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 font-mono">
+                      <CloudLightning className="w-2.5 h-2.5 text-indigo-400" />
+                      WX
+                    </span>
+                  ) : isConflict ? (
                     <span className="flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full bg-red-500/20 border border-red-500/50 text-red-300 font-mono animate-pulse">
                       <AlertTriangle className="w-2.5 h-2.5 text-red-400" />
                       STCA
                     </span>
-                  ) : isSafeScenario ? (
+                  ) : isSafe ? (
                     <span className="flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full bg-sky-500/20 border border-sky-500/40 text-sky-300 font-mono">
                       <CheckCircle2 className="w-2.5 h-2.5 text-sky-400" />
                       SAFE
@@ -238,7 +271,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] text-slate-400 leading-snug font-sans">
+                <p className="text-[10.5px] text-slate-400 leading-snug font-sans">
                   {scenario.description}
                 </p>
               </button>

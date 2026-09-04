@@ -1,29 +1,53 @@
 import React, { useRef, useState } from 'react';
 import type { Aircraft, AirspaceDimensions, SimulationSettings } from '../types/aircraft';
 import type { CollisionPrediction } from '../types/collision';
+import type { WeatherZone, AircraftWeatherInteraction } from '../types/weather';
+import type { DynamicAirspaceSector, RestrictedZone } from '../types/safety';
 import { RadarGrid } from './RadarGrid';
 import { FlightTrail } from './FlightTrail';
 import { TrajectoryLine } from './TrajectoryLine';
 import { ConflictZoneLayer } from './ConflictZoneLayer';
+import { WeatherZoneLayer } from './WeatherZoneLayer';
+import { DynamicAirspaceLayer } from './DynamicAirspaceLayer';
 import { AircraftMarker } from './AircraftMarker';
-import { ZoomIn, ZoomOut, RotateCcw, Compass, Crosshair, AlertTriangle } from 'lucide-react';
+import {
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  Compass,
+  Crosshair,
+  AlertTriangle,
+  CloudLightning,
+} from 'lucide-react';
 
 interface AirspaceProps {
   aircraft: Aircraft[];
   conflicts?: CollisionPrediction[];
+  weatherZones?: WeatherZone[];
+  weatherInteractions?: AircraftWeatherInteraction[];
+  dynamicAirspaceSectors?: DynamicAirspaceSector[];
+  restrictedZones?: RestrictedZone[];
   selectedAircraftId: string | null;
+  selectedZoneId?: string | null;
   settings: SimulationSettings;
   bounds: AirspaceDimensions;
   onSelectAircraft: (aircraft: Aircraft | null) => void;
+  onSelectZone?: (zone: WeatherZone) => void;
 }
 
 export const Airspace: React.FC<AirspaceProps> = ({
   aircraft,
   conflicts = [],
+  weatherZones = [],
+  weatherInteractions = [],
+  dynamicAirspaceSectors = [],
+  restrictedZones = [],
   selectedAircraftId,
+  selectedZoneId,
   settings,
   bounds,
   onSelectAircraft,
+  onSelectZone,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -87,6 +111,9 @@ export const Airspace: React.FC<AirspaceProps> = ({
   };
 
   const topCriticalConflict = conflicts.find((c) => c.collisionRisk === 'CRITICAL') || conflicts[0];
+  const topCriticalWeather = weatherInteractions.find(
+    (w) => w.weatherRisk === 'CRITICAL' || w.weatherRisk === 'HIGH'
+  );
 
   return (
     <div
@@ -120,7 +147,25 @@ export const Airspace: React.FC<AirspaceProps> = ({
           showRadarSweep={settings.radarSweep && settings.isRunning}
         />
 
-        {/* Layer 2: Historical Radar Returns */}
+        {/* Layer 2: Dynamic Safe Airspace Sector Heatmap Overlay */}
+        <DynamicAirspaceLayer
+          sectors={dynamicAirspaceSectors}
+          restrictedZones={restrictedZones}
+          visible={settings.showAirspaceSafetyGrid}
+        />
+
+        {/* Layer 3: Weather Danger Zones & Precipitation Echoes */}
+        {settings.showWeatherOverlay && (
+          <WeatherZoneLayer
+            weatherZones={weatherZones}
+            interactions={weatherInteractions}
+            aircraftList={aircraft}
+            selectedZoneId={selectedZoneId}
+            onSelectZone={onSelectZone}
+          />
+        )}
+
+        {/* Layer 4: Historical Radar Returns */}
         {settings.showTrails && (
           <g className="flight-trails-layer">
             {aircraft.map((ac) => (
@@ -135,7 +180,7 @@ export const Airspace: React.FC<AirspaceProps> = ({
           </g>
         )}
 
-        {/* Layer 3: Projected Trajectories & Prediction Markers */}
+        {/* Layer 5: Projected Trajectories & Prediction Markers */}
         {settings.showTrajectories && (
           <g className="trajectories-layer">
             {aircraft.map((ac) => (
@@ -151,10 +196,10 @@ export const Airspace: React.FC<AirspaceProps> = ({
           </g>
         )}
 
-        {/* Layer 4: Mathematical Conflict Points & Predicted Danger Regions */}
+        {/* Layer 6: Mathematical Conflict Points & Predicted Danger Regions */}
         <ConflictZoneLayer conflicts={conflicts} />
 
-        {/* Layer 5: SSR Aircraft Radar Targets & Full Data Blocks */}
+        {/* Layer 7: SSR Aircraft Radar Targets & Full Data Blocks */}
         <g className="aircraft-layer">
           {aircraft.map((ac) => (
             <AircraftMarker
@@ -168,17 +213,26 @@ export const Airspace: React.FC<AirspaceProps> = ({
         </g>
       </svg>
 
-      {/* Floating Top Center Conflict Alert Pill (When Conflict Detected) */}
-      {topCriticalConflict && (
+      {/* Floating Top Center Conflict Alert Pill */}
+      {topCriticalConflict ? (
         <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
           <div className="liquid-glass-red px-4 py-1.5 rounded-full flex items-center gap-2 text-xs font-mono text-red-100 font-bold shadow-2xl animate-pulse">
             <AlertTriangle className="w-3.5 h-3.5 text-red-300" />
             <span>
-              CONFLICT DETECTED: {topCriticalConflict.aircraftA.callsign} & {topCriticalConflict.aircraftB.callsign} (T-{topCriticalConflict.timeToClosestApproach}s CPA)
+              CONFLICT: {topCriticalConflict.aircraftA.callsign} & {topCriticalConflict.aircraftB.callsign} (T-{topCriticalConflict.timeToClosestApproach}s CPA)
             </span>
           </div>
         </div>
-      )}
+      ) : topCriticalWeather ? (
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
+          <div className="liquid-glass-amber px-4 py-1.5 rounded-full flex items-center gap-2 text-xs font-mono text-amber-100 font-bold shadow-2xl animate-pulse">
+            <CloudLightning className="w-3.5 h-3.5 text-amber-300" />
+            <span>
+              WEATHER ALERT: {topCriticalWeather.aircraftCallsign} ⚡ {topCriticalWeather.zoneName} ({topCriticalWeather.currentExposure ? 'INSIDE' : `ENTRY IN T-${topCriticalWeather.timeToEntry}s`})
+            </span>
+          </div>
+        </div>
+      ) : null}
 
       {/* Floating iOS Glass Control Toolbar (Top Right) */}
       <div className="absolute top-3 right-3 z-20 flex items-center gap-2">
@@ -186,21 +240,21 @@ export const Airspace: React.FC<AirspaceProps> = ({
           <button
             onClick={() => handleZoom(1.15)}
             title="Zoom In"
-            className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-150 active:scale-90"
+            className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-150 active:scale-90 cursor-pointer"
           >
             <ZoomIn className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => handleZoom(0.85)}
             title="Zoom Out"
-            className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-150 active:scale-90"
+            className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-150 active:scale-90 cursor-pointer"
           >
             <ZoomOut className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={handleResetView}
             title="Reset Scope View"
-            className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-150 active:scale-90"
+            className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-150 active:scale-90 cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
           </button>

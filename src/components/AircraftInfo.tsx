@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Aircraft, AircraftStatus } from '../types/aircraft';
 import type { CollisionPrediction } from '../types/collision';
+import type { UnifiedAircraftSafety } from '../types/safety';
 import {
   X,
   Trash2,
@@ -11,11 +12,14 @@ import {
   AlertTriangle,
   AlertOctagon,
   Flame,
+  CloudLightning,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface AircraftInfoProps {
   aircraft: Aircraft | null;
   activeConflict?: CollisionPrediction | null;
+  unifiedSafety?: UnifiedAircraftSafety | null;
   onUpdateAircraft: (id: string, updates: Partial<Aircraft>) => void;
   onDeselect: () => void;
   onRemoveAircraft: (id: string) => void;
@@ -24,6 +28,7 @@ interface AircraftInfoProps {
 export const AircraftInfo: React.FC<AircraftInfoProps> = ({
   aircraft,
   activeConflict,
+  unifiedSafety,
   onUpdateAircraft,
   onDeselect,
   onRemoveAircraft,
@@ -50,7 +55,7 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
         return (
           <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full liquid-glass-red text-red-100 font-mono text-[10px] font-bold animate-pulse shadow-lg">
             <AlertTriangle className="w-3 h-3 text-red-400" />
-            STCA CONFLICT
+            CRITICAL
           </span>
         );
       case 'HIGH_RISK':
@@ -90,6 +95,8 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
       : activeConflict.aircraftA
     : null;
 
+  const activeWeather = unifiedSafety?.weatherInteractions?.[0] || null;
+
   return (
     <div className="liquid-glass rounded-3xl p-4 text-slate-200 select-none font-sans text-xs flex flex-col gap-3.5 shadow-2xl">
       {/* Header & Track Identification */}
@@ -123,6 +130,67 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
         </div>
       </div>
 
+      {/* Multi-Factor Safety Matrix Card */}
+      {unifiedSafety && (
+        <div className="liquid-glass-subtle p-2.5 rounded-2xl border border-white/10 flex flex-col gap-1.5 font-mono text-[10px]">
+          <div className="flex items-center justify-between">
+            <span className="text-slate-400 uppercase tracking-wider text-[9px] flex items-center gap-1">
+              <ShieldCheck className="w-3 h-3 text-sky-400" />
+              Unified Safety Score
+            </span>
+            <span
+              className={`px-2 py-0.5 rounded-md font-bold uppercase ${
+                unifiedSafety.overallSafety === 'CRITICAL'
+                  ? 'bg-red-500/30 text-red-200 border border-red-500/50'
+                  : unifiedSafety.overallSafety === 'HIGH_RISK'
+                  ? 'bg-orange-500/30 text-orange-200 border border-orange-500/40'
+                  : unifiedSafety.overallSafety === 'WARNING'
+                  ? 'bg-amber-500/20 text-amber-200 border border-amber-500/30'
+                  : 'bg-sky-500/20 text-sky-200 border border-sky-500/30'
+              }`}
+            >
+              {unifiedSafety.overallSafety}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-white/5">
+            <div className="bg-black/20 p-1.5 rounded-xl">
+              <span className="text-slate-400 block text-[8.5px]">COLLISION RISK</span>
+              <span
+                className={`font-bold ${
+                  unifiedSafety.collisionRisk === 'CRITICAL'
+                    ? 'text-red-400'
+                    : unifiedSafety.collisionRisk === 'HIGH_RISK'
+                    ? 'text-orange-400'
+                    : unifiedSafety.collisionRisk === 'WARNING'
+                    ? 'text-amber-400'
+                    : 'text-sky-300'
+                }`}
+              >
+                {unifiedSafety.collisionRisk}
+              </span>
+            </div>
+
+            <div className="bg-black/20 p-1.5 rounded-xl">
+              <span className="text-slate-400 block text-[8.5px]">WEATHER RISK</span>
+              <span
+                className={`font-bold ${
+                  unifiedSafety.weatherRisk === 'CRITICAL'
+                    ? 'text-red-400'
+                    : unifiedSafety.weatherRisk === 'HIGH'
+                    ? 'text-orange-400'
+                    : unifiedSafety.weatherRisk === 'MODERATE'
+                    ? 'text-amber-400'
+                    : 'text-sky-300'
+                }`}
+              >
+                {unifiedSafety.weatherRisk}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Active Predictive Collision Diagnostic Card (Frosted Red Glass) */}
       {activeConflict && otherAircraft && (
         <div className="liquid-glass-red p-3 rounded-2xl flex flex-col gap-2 shadow-xl animate-pulse">
@@ -152,6 +220,40 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
             <div>
               <span className="text-slate-400 block text-[9px] font-sans">RELATIVE SPEED</span>
               <strong className="text-red-200 font-bold">{activeConflict.relativeVelocity.relativeSpeed} KTS</strong>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Active Weather Hazard Diagnostic Card */}
+      {activeWeather && activeWeather.weatherRisk !== 'SAFE' && (
+        <div className="liquid-glass-amber p-3 rounded-2xl flex flex-col gap-2 shadow-lg">
+          <div className="flex items-center justify-between">
+            <span className="text-amber-100 font-bold flex items-center gap-1.5 text-xs font-mono">
+              <CloudLightning className="w-4 h-4 text-amber-400" />
+              WEATHER EXPOSURE
+            </span>
+            <span className="text-[10px] bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-400/40 font-bold text-amber-100 font-mono">
+              {activeWeather.currentExposure ? 'INSIDE CELL' : `T-${activeWeather.timeToEntry}s ENTRY`}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-1.5 text-[10px] bg-black/40 p-2 rounded-xl border border-amber-500/20 font-mono">
+            <div>
+              <span className="text-slate-400 block text-[9px] font-sans">HAZARD CELL</span>
+              <strong className="text-amber-200 font-bold">{activeWeather.zoneName}</strong>
+            </div>
+            <div>
+              <span className="text-slate-400 block text-[9px] font-sans">WEATHER TYPE</span>
+              <strong className="text-amber-200 font-bold">{activeWeather.zoneType}</strong>
+            </div>
+            <div>
+              <span className="text-slate-400 block text-[9px] font-sans">DISTANCE TO ZONE</span>
+              <strong className="text-amber-200 font-bold">{activeWeather.distanceToZone} PX</strong>
+            </div>
+            <div>
+              <span className="text-slate-400 block text-[9px] font-sans">RISK LEVEL</span>
+              <strong className="text-amber-200 font-bold">{activeWeather.weatherRisk}</strong>
             </div>
           </div>
         </div>

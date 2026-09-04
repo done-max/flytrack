@@ -1,3 +1,6 @@
+import type { WeatherZone } from './weather';
+import type { RestrictedZone } from './safety';
+
 export type AircraftStatus = 'NORMAL' | 'CAUTION' | 'HIGH_RISK' | 'CRITICAL';
 
 export interface Position {
@@ -63,6 +66,8 @@ export interface SimulationSettings {
   showLabels: boolean;
   showRangeRings: boolean;
   showSectorGrid: boolean;
+  showWeatherOverlay: boolean;
+  showAirspaceSafetyGrid: boolean;
   radarSweep: boolean;
   trajectoryPredictionSeconds: number; // e.g. 60 or 120
   maxTrailPoints: number;
@@ -74,4 +79,6 @@ export interface ScenarioDefinition {
   tagline: string;
   description: string;
   aircraft: Aircraft[];
+  weatherZones?: WeatherZone[];
+  restrictedZones?: RestrictedZone[];
 }

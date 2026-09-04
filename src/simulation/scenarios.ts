@@ -1,8 +1,9 @@
 import type { ScenarioDefinition } from '../types/aircraft';
 import { createAircraft } from './aircraft';
+import { createWeatherZone, DEFAULT_WEATHER_ZONES, DEFAULT_RESTRICTED_ZONES } from '../weather/weatherZones';
 
 export const SCENARIOS: Record<string, ScenarioDefinition> = {
-  // Scenario 1: Safe Flight
+  // Phase 2: Scenario 1 - Safe Flight
   scenario_safe: {
     id: 'scenario_safe',
     name: 'Scenario 1: Safe Flight',
@@ -50,9 +51,11 @@ export const SCENARIOS: Record<string, ScenarioDefinition> = {
         status: 'NORMAL',
       }),
     ],
+    weatherZones: [],
+    restrictedZones: [],
   },
 
-  // Scenario 2: Predicted Conflict
+  // Phase 2: Scenario 2 - Predicted Conflict
   scenario_conflict: {
     id: 'scenario_conflict',
     name: 'Scenario 2: Predicted Conflict',
@@ -100,9 +103,11 @@ export const SCENARIOS: Record<string, ScenarioDefinition> = {
         status: 'NORMAL',
       }),
     ],
+    weatherZones: [],
+    restrictedZones: [],
   },
 
-  // Scenario 3: Altitude Separation
+  // Phase 2: Scenario 3 - Altitude Separation
   scenario_altitude: {
     id: 'scenario_altitude',
     name: 'Scenario 3: Altitude Separation',
@@ -137,9 +142,11 @@ export const SCENARIOS: Record<string, ScenarioDefinition> = {
         status: 'NORMAL',
       }),
     ],
+    weatherZones: [],
+    restrictedZones: [],
   },
 
-  // Scenario 4: Multiple Aircraft Traffic
+  // Phase 2: Scenario 4 - Multiple Aircraft Traffic
   scenario_multi: {
     id: 'scenario_multi',
     name: 'Scenario 4: Multiple Aircraft',
@@ -213,9 +220,11 @@ export const SCENARIOS: Record<string, ScenarioDefinition> = {
         status: 'NORMAL',
       }),
     ],
+    weatherZones: [],
+    restrictedZones: [],
   },
 
-  // Scenario 5: Head-On Approach
+  // Phase 2: Scenario 5 - Head-On Approach
   scenario_headon: {
     id: 'scenario_headon',
     name: 'Scenario 5: Head-On Approach',
@@ -250,5 +259,236 @@ export const SCENARIOS: Record<string, ScenarioDefinition> = {
         status: 'NORMAL',
       }),
     ],
+    weatherZones: [],
+    restrictedZones: [],
+  },
+
+  // ==========================================
+  // Phase 3: Weather Scenarios
+  // ==========================================
+
+  // Phase 3: Scenario W1 - Clear Airspace
+  scenario_weather_clear: {
+    id: 'scenario_weather_clear',
+    name: 'Weather 1: Clear Airspace',
+    tagline: 'Nominal Atmosphere & Standard Airway Routing',
+    description:
+      'Nominal atmospheric conditions across the sector with zero convective hazards. All aircraft operate safely in standard corridor buffers.',
+    aircraft: [
+      createAircraft({
+        id: 'AC001',
+        callsign: 'SKY 101',
+        model: 'B787-9',
+        x: 150,
+        y: 250,
+        altitude: 34000,
+        speed: 490,
+        heading: 90,
+        origin: 'ORD',
+        destination: 'LGA',
+        status: 'NORMAL',
+      }),
+      createAircraft({
+        id: 'AC002',
+        callsign: 'DAL 452',
+        model: 'A321neo',
+        x: 850,
+        y: 480,
+        altitude: 36000,
+        speed: 510,
+        heading: 270,
+        origin: 'BOS',
+        destination: 'DEN',
+        status: 'NORMAL',
+      }),
+    ],
+    weatherZones: [],
+    restrictedZones: [],
+  },
+
+  // Phase 3: Scenario W2 - Storm Ahead
+  scenario_weather_storm_ahead: {
+    id: 'scenario_weather_storm_ahead',
+    name: 'Weather 2: Storm Ahead',
+    tagline: 'Direct Convective Storm Cell Intercept',
+    description:
+      'SKY 101 cruising eastbound at FL320 directly towards an active severe supercell (Storm Cell Alpha). Weather alert triggers with real-time time to entry countdown.',
+    aircraft: [
+      createAircraft({
+        id: 'AC001',
+        callsign: 'SKY 101',
+        model: 'B777-300ER',
+        x: 150,
+        y: 375,
+        altitude: 32000,
+        speed: 500,
+        heading: 90, // Flying directly into storm at (550, 375)
+        origin: 'SFO',
+        destination: 'JFK',
+        status: 'NORMAL',
+      }),
+      createAircraft({
+        id: 'AC002',
+        callsign: 'SWA 880',
+        model: 'B737-800',
+        x: 150,
+        y: 650,
+        altitude: 36000,
+        speed: 470,
+        heading: 90, // Flying safely below storm on clear southern airway
+        origin: 'LAX',
+        destination: 'MCO',
+        status: 'NORMAL',
+      }),
+    ],
+    weatherZones: [
+      createWeatherZone({
+        id: 'WZ_STORM_ALPHA',
+        name: 'Supercell Storm Alpha',
+        type: 'THUNDERSTORM',
+        severity: 'CRITICAL',
+        center: { x: 550, y: 375 },
+        radius: 105,
+        windSpeed: 85,
+        windHeading: 270,
+        visibility: 1.0,
+        minAltitudeFt: 0,
+        maxAltitudeFt: 45000,
+        isActive: true,
+        description: 'Severe convective supercell with extreme turbulence and lightning',
+      }),
+    ],
+    restrictedZones: [],
+  },
+
+  // Phase 3: Scenario W3 - Aircraft Conflict + Storm
+  scenario_weather_conflict_storm: {
+    id: 'scenario_weather_conflict_storm',
+    name: 'Weather 3: Conflict + Storm',
+    tagline: 'Dual Hazard: STCA Converging Traffic + Weather Blockade',
+    description:
+      'SKY 101 & UAL 452 are in an impending collision conflict. The standard right turn escape vector is blocked by a severe thunderstorm cell, highlighting multi-hazard risk.',
+    aircraft: [
+      createAircraft({
+        id: 'AC001',
+        callsign: 'SKY 101',
+        model: 'B787-9',
+        x: 120,
+        y: 360,
+        altitude: 31000,
+        speed: 520,
+        heading: 90, // Eastbound converging on (450, 360)
+        origin: 'SEA',
+        destination: 'BOS',
+        status: 'NORMAL',
+      }),
+      createAircraft({
+        id: 'AC002',
+        callsign: 'UAL 452',
+        model: 'A330-300',
+        x: 450,
+        y: 690,
+        altitude: 31000,
+        speed: 520,
+        heading: 0, // Northbound converging on (450, 360)
+        origin: 'DFW',
+        destination: 'ORD',
+        status: 'NORMAL',
+      }),
+    ],
+    weatherZones: [
+      createWeatherZone({
+        id: 'WZ_ESCAPE_BLOCK',
+        name: 'Storm Front Echo',
+        type: 'THUNDERSTORM',
+        severity: 'HIGH',
+        center: { x: 450, y: 220 }, // Blocks northbound escape for UAL452 / northeast turn for SKY101
+        radius: 85,
+        windSpeed: 70,
+        windHeading: 210,
+        visibility: 1.5,
+        minAltitudeFt: 0,
+        maxAltitudeFt: 40000,
+        isActive: true,
+        description: 'Convective storm cell obstructing standard northern clearance corridors',
+      }),
+    ],
+    restrictedZones: [
+      {
+        id: 'RZ_MOA_NORTH',
+        name: 'Restricted Airspace R-2508',
+        center: { x: 250, y: 180 },
+        radius: 65,
+        minAltitudeFt: 0,
+        maxAltitudeFt: 60000,
+        status: 'RESTRICTED',
+        description: 'Military operating area',
+      },
+    ],
+  },
+
+  // Phase 3: Scenario W4 - Multiple Weather Zones
+  scenario_weather_multi: {
+    id: 'scenario_weather_multi',
+    name: 'Weather 4: Multi-Hazard Sector',
+    tagline: 'Thunderstorm, Heavy Rain & Low Visibility Weather Matrix',
+    description:
+      'Three distinct weather hazard cells operating simultaneously. Multiple aircraft experience distinct weather risks depending on their altitude and trajectory.',
+    aircraft: [
+      createAircraft({
+        id: 'AC001',
+        callsign: 'SKY 101',
+        model: 'B777-300ER',
+        x: 120,
+        y: 350,
+        altitude: 32000,
+        speed: 500,
+        heading: 90, // Intersects Storm Alpha
+        origin: 'SFO',
+        destination: 'JFK',
+        status: 'NORMAL',
+      }),
+      createAircraft({
+        id: 'AC002',
+        callsign: 'AFR 012',
+        model: 'A350-900',
+        x: 100,
+        y: 560,
+        altitude: 20000,
+        speed: 460,
+        heading: 90, // Intersects Heavy Rain Bravo (at 20,000 ft)
+        origin: 'CDG',
+        destination: 'MIA',
+        status: 'NORMAL',
+      }),
+      createAircraft({
+        id: 'AC003',
+        callsign: 'BAW 214',
+        model: 'A380-800',
+        x: 880,
+        y: 220,
+        altitude: 38000,
+        speed: 520,
+        heading: 270, // Overflies Fog Charlie safely (FL380 >> 8000ft ceiling)
+        origin: 'LHR',
+        destination: 'LAX',
+        status: 'NORMAL',
+      }),
+      createAircraft({
+        id: 'AC004',
+        callsign: 'DLH 789',
+        model: 'B787-9',
+        x: 850,
+        y: 680,
+        altitude: 34000,
+        speed: 490,
+        heading: 270, // Clear corridor south
+        origin: 'FRA',
+        destination: 'IAH',
+        status: 'NORMAL',
+      }),
+    ],
+    weatherZones: [...DEFAULT_WEATHER_ZONES],
+    restrictedZones: [...DEFAULT_RESTRICTED_ZONES],
   },
 };
