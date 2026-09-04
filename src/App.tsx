@@ -2,18 +2,26 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SimulationEngine } from './simulation/simulationEngine';
 import { SCENARIOS } from './simulation/scenarios';
 import type { Aircraft, ScenarioDefinition, SimulationSettings } from './types/aircraft';
-import type { AirspaceConflictSummary } from './types/collision';
+import type { AirspaceConflictSummary, CollisionEvent } from './types/collision';
 import { TopNav } from './components/TopNav';
 import { Airspace } from './components/Airspace';
 import { ControlPanel } from './components/ControlPanel';
 import { AircraftInfo } from './components/AircraftInfo';
 import { FlightStripBoard } from './components/FlightStripBoard';
 import { AddAircraftModal } from './components/AddAircraftModal';
-import { AlertTriangle, CheckCircle } from 'lucide-react';
+import { CollisionRiskMonitor } from './components/CollisionRiskMonitor';
+import { EventLog } from './components/EventLog';
+import {
+  AlertTriangle,
+  CheckCircle,
+  Sliders,
+  ShieldAlert,
+  History,
+} from 'lucide-react';
 
 export const App: React.FC = () => {
-  // Scenario 2: Potential Collision by default to demonstrate predictive trajectory crossing
-  const defaultScenario = SCENARIOS.scenario_collision;
+  // Scenario 2: Predicted Conflict by default to demonstrate real-time predictive trajectory crossing
+  const defaultScenario = SCENARIOS.scenario_conflict || SCENARIOS.scenario_safe;
   const [activeScenario, setActiveScenario] = useState<ScenarioDefinition>(defaultScenario);
 
   const engineRef = useRef<SimulationEngine | null>(null);
@@ -30,8 +38,10 @@ export const App: React.FC = () => {
     conflicts: [],
   });
 
+  const [events, setEvents] = useState<CollisionEvent[]>([]);
   const [selectedAircraftId, setSelectedAircraftId] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
+  const [rightPanelTab, setRightPanelTab] = useState<'inspector' | 'risk_monitor' | 'event_log'>('risk_monitor');
 
   const [settings, setSettings] = useState<SimulationSettings>({
     isRunning: true,
@@ -51,10 +61,11 @@ export const App: React.FC = () => {
     const engine = new SimulationEngine(defaultScenario.aircraft);
     engineRef.current = engine;
 
-    const unsubscribe = engine.subscribe((newAircraft, time, summary) => {
+    const unsubscribe = engine.subscribe((newAircraft, time, summary, newEvents) => {
       setAircraftList(newAircraft);
       setSimTimeSeconds(time);
       setConflictSummary(summary);
+      setEvents(newEvents);
       setSettings(engine.getSettings());
     });
 
@@ -103,6 +114,9 @@ export const App: React.FC = () => {
 
   const handleSelectAircraft = useCallback((aircraft: Aircraft | null) => {
     setSelectedAircraftId(aircraft ? aircraft.id : null);
+    if (aircraft) {
+      setRightPanelTab('inspector');
+    }
   }, []);
 
   const handleUpdateAircraftDirect = useCallback(
@@ -117,12 +131,18 @@ export const App: React.FC = () => {
     if (!engineRef.current) return;
     engineRef.current.addAircraft(newAircraft);
     setSelectedAircraftId(newAircraft.id);
+    setRightPanelTab('inspector');
   }, []);
 
   const handleRemoveAircraft = useCallback((id: string) => {
     if (!engineRef.current) return;
     engineRef.current.removeAircraft(id);
     setSelectedAircraftId((prev) => (prev === id ? null : prev));
+  }, []);
+
+  const handleClearEvents = useCallback(() => {
+    if (!engineRef.current) return;
+    engineRef.current.clearEvents();
   }, []);
 
   const selectedAircraft = aircraftList.find((ac) => ac.id === selectedAircraftId) || null;
@@ -184,7 +204,7 @@ export const App: React.FC = () => {
           <FlightStripBoard
             aircraft={aircraftList}
             selectedAircraftId={selectedAircraftId}
-            onSelectAircraft={(ac) => setSelectedAircraftId(ac.id)}
+            onSelectAircraft={(ac) => handleSelectAircraft(ac)}
           />
         </div>
 
@@ -250,15 +270,83 @@ export const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Side: Target Inspector & Vector Clearance Editor */}
-        <div className="w-84 flex flex-col gap-3 overflow-y-auto shrink-0 pl-0.5 z-10">
-          <AircraftInfo
-            aircraft={selectedAircraft}
-            activeConflict={activeConflictForSelected}
-            onUpdateAircraft={handleUpdateAircraftDirect}
-            onDeselect={() => setSelectedAircraftId(null)}
-            onRemoveAircraft={handleRemoveAircraft}
-          />
+        {/* Right Side: Multi-Panel Tactical Deck (Inspector / Collision Risk Monitor / Event Log) */}
+        <div className="w-88 flex flex-col gap-2.5 overflow-y-auto shrink-0 pl-0.5 z-10">
+          {/* iOS Liquid Glass Segmented Tab Switcher */}
+          <div className="liquid-glass-subtle p-1 rounded-2xl grid grid-cols-3 gap-1 border border-white/10 shadow-lg">
+            <button
+              onClick={() => setRightPanelTab('risk_monitor')}
+              className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-[11px] font-bold transition-all duration-200 cursor-pointer ${
+                rightPanelTab === 'risk_monitor'
+                  ? 'liquid-glass-active text-white shadow-md'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <ShieldAlert className="w-3.5 h-3.5 text-red-400" />
+              <span>Risk Matrix</span>
+              {conflictSummary.conflicts.length > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full bg-red-500 text-white font-mono text-[9px] font-bold animate-pulse">
+                  {conflictSummary.conflicts.length}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => setRightPanelTab('inspector')}
+              className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-[11px] font-bold transition-all duration-200 cursor-pointer ${
+                rightPanelTab === 'inspector'
+                  ? 'liquid-glass-active text-white shadow-md'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Sliders className="w-3.5 h-3.5 text-sky-400" />
+              <span>Inspector</span>
+            </button>
+
+            <button
+              onClick={() => setRightPanelTab('event_log')}
+              className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-[11px] font-bold transition-all duration-200 cursor-pointer ${
+                rightPanelTab === 'event_log'
+                  ? 'liquid-glass-active text-white shadow-md'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <History className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Audit Log</span>
+              {events.length > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full bg-white/15 text-white font-mono text-[9px]">
+                  {events.length}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Tab Content Display */}
+          {rightPanelTab === 'risk_monitor' && (
+            <CollisionRiskMonitor
+              conflictSummary={conflictSummary}
+              aircraftList={aircraftList}
+              selectedAircraftId={selectedAircraftId}
+              onSelectAircraft={(ac) => handleSelectAircraft(ac)}
+            />
+          )}
+
+          {rightPanelTab === 'inspector' && (
+            <AircraftInfo
+              aircraft={selectedAircraft}
+              activeConflict={activeConflictForSelected}
+              onUpdateAircraft={handleUpdateAircraftDirect}
+              onDeselect={() => setSelectedAircraftId(null)}
+              onRemoveAircraft={handleRemoveAircraft}
+            />
+          )}
+
+          {rightPanelTab === 'event_log' && (
+            <EventLog
+              events={events}
+              onClearEvents={handleClearEvents}
+            />
+          )}
         </div>
       </div>
 

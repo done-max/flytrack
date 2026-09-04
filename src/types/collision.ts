@@ -7,12 +7,12 @@ export interface CollisionThresholds {
   lookaheadTimeSeconds: number;
   
   /** Horizontal separation distance thresholds in airspace pixels */
-  criticalDistanceThreshold: number; // e.g. 25px (imminent breach)
-  highRiskDistanceThreshold: number;  // e.g. 45px (loss of separation zone)
-  warningDistanceThreshold: number;   // e.g. 75px (caution proximity)
+  criticalDistanceThreshold: number; // e.g. 30px (imminent breach)
+  highRiskDistanceThreshold: number;  // e.g. 55px (loss of separation zone)
+  warningDistanceThreshold: number;   // e.g. 90px (caution proximity)
   
   /** Time-to-CPA thresholds in seconds */
-  criticalTimeThresholdSeconds: number; // e.g. 25s
+  criticalTimeThresholdSeconds: number; // e.g. 30s
   highRiskTimeThresholdSeconds: number;  // e.g. 60s
   warningTimeThresholdSeconds: number;   // e.g. 90s
   
@@ -86,4 +86,22 @@ export interface AirspaceConflictSummary {
   warningCount: number;
   highestRiskLevel: CollisionRiskLevel;
   conflicts: CollisionPrediction[];
+}
+
+export type CollisionEventType = 'CONFLICT_DETECTED' | 'RISK_ESCALATED' | 'CONFLICT_RESOLVED';
+
+export interface CollisionEvent {
+  id: string;
+  timestamp: number; // Unix timestamp
+  simTimeSeconds: number;
+  type: CollisionEventType;
+  pairKey: string;
+  aircraftA: { id: string; callsign: string; model?: string };
+  aircraftB: { id: string; callsign: string; model?: string };
+  riskLevel: CollisionRiskLevel;
+  currentSeparation: number;
+  predictedClosestSeparation: number;
+  timeToClosestApproach: number;
+  altitudeDifference: number;
+  message: string;
 }

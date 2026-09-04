@@ -8,6 +8,7 @@ import {
   PlusCircle,
   AlertTriangle,
   Zap,
+  CheckCircle2,
 } from 'lucide-react';
 
 interface ControlPanelProps {
@@ -193,14 +194,19 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         </div>
       </div>
 
-      {/* Operational Test Scenarios */}
+      {/* Operational Test Scenarios (All 5 Scenarios) */}
       <div className="border-t border-white/10 pt-2.5">
         <label className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold block mb-1.5 font-mono">
-          Airspace Traffic Scenarios
+          Airspace Traffic Scenarios (5 Test Cases)
         </label>
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1.5 max-h-[280px] overflow-y-auto pr-0.5">
           {Object.values(SCENARIOS).map((scenario) => {
             const isSelected = activeScenarioId === scenario.id;
+            const isConflictScenario =
+              scenario.id === 'scenario_conflict' || scenario.id === 'scenario_headon';
+            const isSafeScenario =
+              scenario.id === 'scenario_safe' || scenario.id === 'scenario_altitude';
+
             return (
               <button
                 key={scenario.id}
@@ -215,10 +221,20 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                   <span className="text-xs font-bold text-white">
                     {scenario.name}
                   </span>
-                  {scenario.id === 'scenario_collision' && (
+                  {isConflictScenario ? (
                     <span className="flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full bg-red-500/20 border border-red-500/50 text-red-300 font-mono animate-pulse">
                       <AlertTriangle className="w-2.5 h-2.5 text-red-400" />
-                      STCA ALERT
+                      STCA
+                    </span>
+                  ) : isSafeScenario ? (
+                    <span className="flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full bg-sky-500/20 border border-sky-500/40 text-sky-300 font-mono">
+                      <CheckCircle2 className="w-2.5 h-2.5 text-sky-400" />
+                      SAFE
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 font-mono">
+                      <AlertTriangle className="w-2.5 h-2.5 text-amber-400" />
+                      MIXED
                     </span>
                   )}
                 </div>

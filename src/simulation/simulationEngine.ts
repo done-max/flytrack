@@ -1,7 +1,9 @@
 import type { Aircraft, AirspaceDimensions, SimulationSettings } from '../types/aircraft';
 import type {
   AirspaceConflictSummary,
+  CollisionEvent,
   CollisionPrediction,
+  CollisionRiskLevel,
   CollisionThresholds,
 } from '../types/collision';
 import { stepAircraft } from './aircraft';
@@ -16,7 +18,8 @@ import { calculatePredictedTrajectory } from './trajectory';
 export type SimulationTickListener = (
   aircraft: Aircraft[],
   simTimeSeconds: number,
-  conflictSummary: AirspaceConflictSummary
+  conflictSummary: AirspaceConflictSummary,
+  events: CollisionEvent[]
 ) => void;
 
 export class SimulationEngine {
@@ -31,6 +34,12 @@ export class SimulationEngine {
     highestRiskLevel: 'SAFE',
     conflicts: [],
   };
+
+  private events: CollisionEvent[] = [];
+  private activeConflictsMap: Map<
+    string,
+    { risk: CollisionRiskLevel; pairA: Aircraft; pairB: Aircraft }
+  > = new Map();
 
   private settings: SimulationSettings = {
     isRunning: true,
@@ -71,7 +80,7 @@ export class SimulationEngine {
 
   public subscribe(listener: SimulationTickListener): () => void {
     this.listeners.add(listener);
-    listener(this.aircraft, this.settings.simTimeSeconds, this.conflictSummary);
+    listener(this.aircraft, this.settings.simTimeSeconds, this.conflictSummary, this.events);
     return () => {
       this.listeners.delete(listener);
     };
@@ -79,7 +88,7 @@ export class SimulationEngine {
 
   private notify() {
     for (const listener of this.listeners) {
-      listener(this.aircraft, this.settings.simTimeSeconds, this.conflictSummary);
+      listener(this.aircraft, this.settings.simTimeSeconds, this.conflictSummary, this.events);
     }
   }
 
@@ -114,6 +123,9 @@ export class SimulationEngine {
   public reset(newAircraftList?: Aircraft[]) {
     this.pause();
     this.settings.simTimeSeconds = 0;
+    this.events = [];
+    this.activeConflictsMap.clear();
+
     if (newAircraftList) {
       this.aircraft = newAircraftList.map((ac) => ({
         ...ac,
@@ -172,6 +184,8 @@ export class SimulationEngine {
 
     // Re-evaluate conflicts immediately upon manual clearance modification
     this.conflictSummary = detectAirspaceCollisions(this.aircraft, this.thresholds);
+    this.processConflictEvents(this.conflictSummary.conflicts);
+
     const statusMap = deriveAircraftStatusMap(this.aircraft, this.conflictSummary.conflicts);
     this.aircraft = this.aircraft.map((ac) => ({
       ...ac,
@@ -184,12 +198,14 @@ export class SimulationEngine {
   public addAircraft(newAc: Aircraft) {
     this.aircraft = [...this.aircraft, newAc];
     this.conflictSummary = detectAirspaceCollisions(this.aircraft, this.thresholds);
+    this.processConflictEvents(this.conflictSummary.conflicts);
     this.notify();
   }
 
   public removeAircraft(id: string) {
     this.aircraft = this.aircraft.filter((ac) => ac.id !== id);
     this.conflictSummary = detectAirspaceCollisions(this.aircraft, this.thresholds);
+    this.processConflictEvents(this.conflictSummary.conflicts);
     this.notify();
   }
 
@@ -205,6 +221,15 @@ export class SimulationEngine {
     return { ...this.conflictSummary };
   }
 
+  public getEvents(): CollisionEvent[] {
+    return [...this.events];
+  }
+
+  public clearEvents() {
+    this.events = [];
+    this.notify();
+  }
+
   public getThresholds(): CollisionThresholds {
     return { ...this.thresholds };
   }
@@ -212,6 +237,7 @@ export class SimulationEngine {
   public setThresholds(updates: Partial<CollisionThresholds>) {
     this.thresholds = { ...this.thresholds, ...updates };
     this.conflictSummary = detectAirspaceCollisions(this.aircraft, this.thresholds);
+    this.processConflictEvents(this.conflictSummary.conflicts);
     this.notify();
   }
 
@@ -260,6 +286,8 @@ export class SimulationEngine {
 
     // 2. Deterministic mathematical pairwise collision detection
     this.conflictSummary = detectAirspaceCollisions(updated, this.thresholds);
+    this.processConflictEvents(this.conflictSummary.conflicts);
+
     const statusMap = deriveAircraftStatusMap(updated, this.conflictSummary.conflicts);
 
     // 3. Assign dynamic risk statuses
@@ -272,6 +300,128 @@ export class SimulationEngine {
     });
 
     this.aircraft = updated;
+  }
+
+  private processConflictEvents(currentConflicts: CollisionPrediction[]) {
+    const severityRank: Record<CollisionRiskLevel, number> = {
+      SAFE: 0,
+      WARNING: 1,
+      HIGH_RISK: 2,
+      CRITICAL: 3,
+    };
+
+    const currentPairKeys = new Set<string>();
+
+    for (const conflict of currentConflicts) {
+      const idA = conflict.aircraftA.id;
+      const idB = conflict.aircraftB.id;
+      const pairKey = [idA, idB].sort().join('_');
+      currentPairKeys.add(pairKey);
+
+      const prev = this.activeConflictsMap.get(pairKey);
+
+      if (!prev) {
+        // New Conflict Detected
+        this.activeConflictsMap.set(pairKey, {
+          risk: conflict.collisionRisk,
+          pairA: conflict.aircraftA,
+          pairB: conflict.aircraftB,
+        });
+
+        const newEvent: CollisionEvent = {
+          id: `evt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+          timestamp: Date.now(),
+          simTimeSeconds: Math.round(this.settings.simTimeSeconds),
+          type: 'CONFLICT_DETECTED',
+          pairKey,
+          aircraftA: {
+            id: conflict.aircraftA.id,
+            callsign: conflict.aircraftA.callsign,
+            model: conflict.aircraftA.model,
+          },
+          aircraftB: {
+            id: conflict.aircraftB.id,
+            callsign: conflict.aircraftB.callsign,
+            model: conflict.aircraftB.model,
+          },
+          riskLevel: conflict.collisionRisk,
+          currentSeparation: conflict.currentDistance,
+          predictedClosestSeparation: conflict.predictedClosestDistance,
+          timeToClosestApproach: conflict.timeToClosestApproach,
+          altitudeDifference: conflict.altitudeDifference,
+          message: `Separation conflict detected between ${conflict.aircraftA.callsign} & ${conflict.aircraftB.callsign} (${conflict.collisionRisk}, CPA: ${conflict.predictedClosestDistance}px in ${conflict.timeToClosestApproach}s)`,
+        };
+
+        this.events = [newEvent, ...this.events].slice(0, 50);
+      } else if (severityRank[conflict.collisionRisk] > severityRank[prev.risk]) {
+        // Risk Escalated
+        this.activeConflictsMap.set(pairKey, {
+          risk: conflict.collisionRisk,
+          pairA: conflict.aircraftA,
+          pairB: conflict.aircraftB,
+        });
+
+        const newEvent: CollisionEvent = {
+          id: `evt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+          timestamp: Date.now(),
+          simTimeSeconds: Math.round(this.settings.simTimeSeconds),
+          type: 'RISK_ESCALATED',
+          pairKey,
+          aircraftA: {
+            id: conflict.aircraftA.id,
+            callsign: conflict.aircraftA.callsign,
+            model: conflict.aircraftA.model,
+          },
+          aircraftB: {
+            id: conflict.aircraftB.id,
+            callsign: conflict.aircraftB.callsign,
+            model: conflict.aircraftB.model,
+          },
+          riskLevel: conflict.collisionRisk,
+          currentSeparation: conflict.currentDistance,
+          predictedClosestSeparation: conflict.predictedClosestDistance,
+          timeToClosestApproach: conflict.timeToClosestApproach,
+          altitudeDifference: conflict.altitudeDifference,
+          message: `Conflict severity escalated to ${conflict.collisionRisk} for ${conflict.aircraftA.callsign} & ${conflict.aircraftB.callsign} (CPA: ${conflict.predictedClosestDistance}px in ${conflict.timeToClosestApproach}s)`,
+        };
+
+        this.events = [newEvent, ...this.events].slice(0, 50);
+      }
+    }
+
+    // Check for resolved conflicts
+    for (const [pairKey, prevData] of this.activeConflictsMap.entries()) {
+      if (!currentPairKeys.has(pairKey)) {
+        // Conflict has resolved
+        this.activeConflictsMap.delete(pairKey);
+
+        const newEvent: CollisionEvent = {
+          id: `evt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+          timestamp: Date.now(),
+          simTimeSeconds: Math.round(this.settings.simTimeSeconds),
+          type: 'CONFLICT_RESOLVED',
+          pairKey,
+          aircraftA: {
+            id: prevData.pairA.id,
+            callsign: prevData.pairA.callsign,
+            model: prevData.pairA.model,
+          },
+          aircraftB: {
+            id: prevData.pairB.id,
+            callsign: prevData.pairB.callsign,
+            model: prevData.pairB.model,
+          },
+          riskLevel: 'SAFE',
+          currentSeparation: 0,
+          predictedClosestSeparation: 0,
+          timeToClosestApproach: 0,
+          altitudeDifference: 0,
+          message: `Separation conflict resolved between ${prevData.pairA.callsign} & ${prevData.pairB.callsign} — safe radar separation restored`,
+        };
+
+        this.events = [newEvent, ...this.events].slice(0, 50);
+      }
+    }
   }
 
   public destroy() {
