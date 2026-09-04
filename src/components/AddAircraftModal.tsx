@@ -47,13 +47,13 @@ export const AddAircraftModal: React.FC<AddAircraftModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-2xl p-4 font-sans select-none animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-2xl p-4 font-sans select-none animate-fade-in">
       <div className="liquid-glass rounded-3xl max-w-lg w-full p-6 shadow-2xl text-slate-200 text-xs border border-white/20">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]"></span>
-            <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-300 font-mono">
+            <span className="w-2.5 h-2.5 rounded-full bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.8)]"></span>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-white font-mono">
               Inject SSR Radar Target
             </h3>
           </div>
@@ -75,7 +75,7 @@ export const AddAircraftModal: React.FC<AddAircraftModalProps> = ({
                 required
                 value={callsign}
                 onChange={(e) => setCallsign(e.target.value)}
-                className="w-full liquid-glass-subtle rounded-xl px-3 py-2 text-emerald-300 font-mono font-bold uppercase outline-none focus:border-emerald-400 transition-colors border border-white/10"
+                className="w-full liquid-glass-subtle rounded-xl px-3 py-2 text-white font-mono font-bold uppercase outline-none focus:border-white/40 transition-colors border border-white/10"
               />
             </div>
             <div>
@@ -83,7 +83,7 @@ export const AddAircraftModal: React.FC<AddAircraftModalProps> = ({
               <select
                 value={model}
                 onChange={(e) => setModel(e.target.value)}
-                className="w-full liquid-glass-subtle rounded-xl px-3 py-2 text-slate-200 outline-none focus:border-emerald-400 transition-colors border border-white/10"
+                className="w-full liquid-glass-subtle rounded-xl px-3 py-2 text-slate-200 outline-none focus:border-white/40 transition-colors border border-white/10"
               >
                 <option value="B787-9">B787-9 (Heavy)</option>
                 <option value="A350-900">A350-900 (Heavy)</option>
@@ -127,7 +127,7 @@ export const AddAircraftModal: React.FC<AddAircraftModalProps> = ({
                 max="980"
                 value={x}
                 onChange={(e) => setX(Number(e.target.value))}
-                className="w-full liquid-glass-subtle rounded-xl px-3 py-2 text-white font-mono outline-none focus:border-emerald-400 transition-colors border border-white/10"
+                className="w-full liquid-glass-subtle rounded-xl px-3 py-2 text-white font-mono outline-none focus:border-white/40 transition-colors border border-white/10"
               />
             </div>
             <div>
@@ -138,7 +138,7 @@ export const AddAircraftModal: React.FC<AddAircraftModalProps> = ({
                 max="730"
                 value={y}
                 onChange={(e) => setY(Number(e.target.value))}
-                className="w-full liquid-glass-subtle rounded-xl px-3 py-2 text-white font-mono outline-none focus:border-emerald-400 transition-colors border border-white/10"
+                className="w-full liquid-glass-subtle rounded-xl px-3 py-2 text-white font-mono outline-none focus:border-white/40 transition-colors border border-white/10"
               />
             </div>
           </div>
@@ -147,7 +147,7 @@ export const AddAircraftModal: React.FC<AddAircraftModalProps> = ({
           <div className="liquid-glass-subtle p-3 rounded-2xl border border-white/10">
             <div className="flex justify-between mb-1 text-[11px]">
               <span className="text-slate-300 font-medium">Heading (Track)</span>
-              <span className="text-emerald-300 font-mono font-bold">{heading}° MAG</span>
+              <span className="text-white font-mono font-bold">{heading}° MAG</span>
             </div>
             <input
               type="range"
@@ -163,7 +163,7 @@ export const AddAircraftModal: React.FC<AddAircraftModalProps> = ({
           <div className="liquid-glass-subtle p-3 rounded-2xl border border-white/10">
             <div className="flex justify-between mb-1 text-[11px]">
               <span className="text-slate-300 font-medium">Ground Speed</span>
-              <span className="text-emerald-300 font-mono font-bold">{speed} KTS</span>
+              <span className="text-white font-mono font-bold">{speed} KTS</span>
             </div>
             <input
               type="range"
@@ -180,7 +180,7 @@ export const AddAircraftModal: React.FC<AddAircraftModalProps> = ({
           <div className="liquid-glass-subtle p-3 rounded-2xl border border-white/10">
             <div className="flex justify-between mb-1 text-[11px]">
               <span className="text-slate-300 font-medium">Cleared Flight Level</span>
-              <span className="text-emerald-300 font-mono font-bold">
+              <span className="text-white font-mono font-bold">
                 FL{Math.round(altitude / 100)} ({altitude.toLocaleString()} FT)
               </span>
             </div>
@@ -206,9 +206,9 @@ export const AddAircraftModal: React.FC<AddAircraftModalProps> = ({
             </button>
             <button
               type="submit"
-              className="flex items-center gap-1.5 px-5 py-2 liquid-glass-green text-emerald-100 font-bold rounded-xl transition-all duration-200 cursor-pointer shadow-lg active:scale-95"
+              className="flex items-center gap-1.5 px-5 py-2 liquid-glass-active text-white font-bold rounded-xl transition-all duration-200 cursor-pointer shadow-lg active:scale-95"
             >
-              <PlusCircle className="w-4 h-4 text-emerald-300" />
+              <PlusCircle className="w-4 h-4 text-sky-400" />
               <span>Inject Target</span>
             </button>
           </div>

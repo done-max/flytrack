@@ -17,14 +17,14 @@ export const FlightTrail: React.FC<FlightTrailProps> = ({
   const getStatusColor = (s: AircraftStatus) => {
     switch (s) {
       case 'CRITICAL':
-        return '#ef4444'; // Red
+        return '#ef4444'; // Alert Red
       case 'HIGH_RISK':
         return '#f87171'; // Red-Orange
       case 'CAUTION':
-        return '#f59e0b'; // Amber
+        return '#fbbf24'; // Amber
       case 'NORMAL':
       default:
-        return '#22c55e'; // Radar Green
+        return '#38bdf8'; // Ice Cyan
     }
   };
 
@@ -38,7 +38,7 @@ export const FlightTrail: React.FC<FlightTrailProps> = ({
         if (index % 4 !== 0 || index === total - 1) return null;
         
         const progress = index / total;
-        const opacity = Math.max(0.12, Math.pow(progress, 2) * 0.75);
+        const opacity = Math.max(0.15, Math.pow(progress, 2) * 0.85);
         const radius = 0.8 + progress * 0.8;
 
         return (
@@ -58,7 +58,7 @@ export const FlightTrail: React.FC<FlightTrailProps> = ({
         if (index === 0) return null;
         const prev = history[index - 1];
         const progress = index / total;
-        const opacity = Math.max(0.04, progress * 0.25);
+        const opacity = Math.max(0.05, progress * 0.3);
 
         return (
           <line

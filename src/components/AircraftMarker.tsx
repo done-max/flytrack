@@ -14,45 +14,41 @@ export const AircraftMarker: React.FC<AircraftMarkerProps> = ({
   showLabels,
   onSelect,
 }) => {
-  // Primary: Radar Green, Critical: Red, Secondary: Blue
+  // Neutral Liquid Glass Colors with Vivid Alert Red for Conflicts
   const getStatusColor = (s: AircraftStatus) => {
     switch (s) {
       case 'CRITICAL':
         return {
           primary: '#ef4444',
           secondary: '#fca5a5',
-          bg: 'rgba(25, 4, 4, 0.85)',
-          border: 'rgba(239, 68, 68, 0.8)',
-          text: '#fca5a5',
-          glow: 'rgba(239, 68, 68, 0.5)',
+          bg: 'rgba(36, 8, 14, 0.88)',
+          border: 'rgba(248, 113, 113, 0.85)',
+          text: '#fecaca',
         };
       case 'HIGH_RISK':
         return {
           primary: '#f87171',
           secondary: '#fca5a5',
-          bg: 'rgba(25, 8, 8, 0.85)',
+          bg: 'rgba(32, 12, 16, 0.88)',
           border: 'rgba(248, 113, 113, 0.7)',
-          text: '#fca5a5',
-          glow: 'rgba(248, 113, 113, 0.4)',
+          text: '#fecaca',
         };
       case 'CAUTION':
         return {
-          primary: '#f59e0b',
-          secondary: '#fcd34d',
-          bg: 'rgba(24, 14, 4, 0.85)',
-          border: 'rgba(245, 158, 11, 0.7)',
-          text: '#fcd34d',
-          glow: 'rgba(245, 158, 11, 0.4)',
+          primary: '#fbbf24',
+          secondary: '#fde68a',
+          bg: 'rgba(30, 20, 8, 0.88)',
+          border: 'rgba(251, 191, 36, 0.75)',
+          text: '#fde68a',
         };
       case 'NORMAL':
       default:
         return {
-          primary: '#22c55e',
-          secondary: '#86efac',
-          bg: 'rgba(4, 16, 8, 0.85)',
-          border: 'rgba(74, 222, 128, 0.5)',
-          text: '#86efac',
-          glow: 'rgba(34, 197, 94, 0.35)',
+          primary: '#38bdf8',
+          secondary: '#bae6fd',
+          bg: 'rgba(13, 17, 23, 0.85)',
+          border: 'rgba(255, 255, 255, 0.22)',
+          text: '#ffffff',
         };
     }
   };
@@ -99,16 +95,16 @@ export const AircraftMarker: React.FC<AircraftMarkerProps> = ({
             cx="0"
             cy="0"
             r="12"
-            fill="rgba(239, 68, 68, 0.15)"
+            fill="rgba(239, 68, 68, 0.18)"
             stroke="none"
           />
         </g>
       )}
 
-      {/* Target Selection Reticle in Secondary Blue */}
+      {/* Target Selection Reticle in Ice Cyan */}
       {isSelected && (
         <g className="selection-brackets pointer-events-none" stroke="#38bdf8" strokeWidth="1.2">
-          <circle cx="0" cy="0" r="14" fill="rgba(56, 189, 248, 0.12)" stroke="rgba(56, 189, 248, 0.6)" strokeDasharray="2 2" />
+          <circle cx="0" cy="0" r="15" fill="rgba(56, 189, 248, 0.14)" stroke="rgba(56, 189, 248, 0.7)" strokeDasharray="2 2" />
           <path d="M -10,-6 L -10,-10 L -6,-10" fill="none" />
           <path d="M 10,-6 L 10,-10 L 6,-10" fill="none" />
           <path d="M -10,6 L -10,10 L -6,10" fill="none" />
@@ -148,7 +144,7 @@ export const AircraftMarker: React.FC<AircraftMarkerProps> = ({
         <circle cx="0" cy="0" r="1.5" fill="#ffffff" />
       </g>
 
-      {/* Full Data Block (FDB) with Translucent Frosted Glass Plate */}
+      {/* Full Data Block (FDB) with Translucent Liquid Glass Plate */}
       {showLabels && (
         <g className="full-data-block select-none pointer-events-none">
           {/* J-Hook Leader Line */}
@@ -180,7 +176,7 @@ export const AircraftMarker: React.FC<AircraftMarkerProps> = ({
               y1="1"
               x2="86"
               y2="1"
-              stroke="rgba(255, 255, 255, 0.2)"
+              stroke="rgba(255, 255, 255, 0.28)"
               strokeWidth="0.8"
             />
 

@@ -149,11 +149,11 @@ export const App: React.FC = () => {
   );
 
   return (
-    <div className="relative flex flex-col h-screen w-screen bg-[#030705] text-slate-200 overflow-hidden font-sans select-none">
-      {/* Background Liquid Ambient Light Orbs */}
-      <div className="absolute top-1/4 left-1/6 w-96 h-96 rounded-full bg-emerald-600/10 blur-[130px] pointer-events-none liquid-orb-1" />
-      <div className="absolute bottom-1/4 right-1/5 w-[30rem] h-[30rem] rounded-full bg-sky-600/8 blur-[150px] pointer-events-none liquid-orb-2" />
-      <div className="absolute top-2/3 left-1/3 w-80 h-80 rounded-full bg-teal-500/10 blur-[120px] pointer-events-none" />
+    <div className="relative flex flex-col h-screen w-screen bg-[#07090e] text-slate-200 overflow-hidden font-sans select-none">
+      {/* Background Liquid Ambient Light Orbs (Deep Sapphire, Ice Frost & Violet) */}
+      <div className="absolute top-1/4 left-1/6 w-96 h-96 rounded-full bg-sky-600/12 blur-[140px] pointer-events-none liquid-orb-1" />
+      <div className="absolute bottom-1/4 right-1/5 w-[32rem] h-[32rem] rounded-full bg-indigo-600/10 blur-[160px] pointer-events-none liquid-orb-2" />
+      <div className="absolute top-2/3 left-1/3 w-80 h-80 rounded-full bg-cyan-500/8 blur-[130px] pointer-events-none" />
 
       {/* Top Operations Header Floating Glass Pill */}
       <TopNav
@@ -201,27 +201,27 @@ export const App: React.FC = () => {
           {/* Bottom Tactical Separation Safety Bar (Floating Liquid Glass Pill) */}
           <div className="mt-2 liquid-glass px-4 py-2 rounded-2xl flex items-center justify-between text-xs shadow-2xl">
             <div className="flex items-center gap-3">
-              <span className="text-emerald-400 font-bold text-[10px] font-mono tracking-wider">
+              <span className="text-slate-400 font-bold text-[10px] font-mono tracking-wider">
                 STCA SEPARATION SAFETY STATUS:
               </span>
 
               {criticalConflicts.length > 0 ? (
-                <span className="flex items-center gap-1.5 text-red-200 font-bold liquid-glass-red px-3 py-1 rounded-xl text-[11px] font-mono animate-pulse shadow-lg">
+                <span className="flex items-center gap-1.5 text-red-100 font-bold liquid-glass-red px-3 py-1 rounded-xl text-[11px] font-mono animate-pulse shadow-lg">
                   <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
                   STCA ALERT: {criticalConflicts[0].aircraftA.callsign} ⚡{' '}
                   {criticalConflicts[0].aircraftB.callsign} — LOSS OF SEPARATION IN{' '}
                   {criticalConflicts[0].timeToClosestApproach}s
                 </span>
               ) : warningConflicts.length > 0 ? (
-                <span className="flex items-center gap-1.5 text-amber-200 font-semibold liquid-glass-amber px-3 py-1 rounded-xl text-[11px] font-mono shadow-md">
+                <span className="flex items-center gap-1.5 text-amber-100 font-semibold liquid-glass-amber px-3 py-1 rounded-xl text-[11px] font-mono shadow-md">
                   <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
                   CONVERGING TRAFFIC: {warningConflicts[0].aircraftA.callsign} &{' '}
                   {warningConflicts[0].aircraftB.callsign} — CPA {warningConflicts[0].predictedClosestDistance}PX IN{' '}
                   {warningConflicts[0].timeToClosestApproach}s
                 </span>
               ) : (
-                <span className="flex items-center gap-1.5 text-emerald-200 font-semibold liquid-glass-green px-3 py-1 rounded-xl text-[11px] font-mono shadow-md">
-                  <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="flex items-center gap-1.5 text-slate-200 font-semibold liquid-glass-subtle px-3 py-1 rounded-xl text-[11px] font-mono shadow-sm border border-white/10">
+                  <CheckCircle className="w-3.5 h-3.5 text-sky-400" />
                   AIRWAYS NOMINAL — STANDARD 5 NM / 1,000 FT SEPARATION MAINTAINED ({conflictSummary.totalPairsChecked} PAIRS MONITORED)
                 </span>
               )}
@@ -230,8 +230,8 @@ export const App: React.FC = () => {
             {/* Tactical Status Legend (Translucent Glass Indicators) */}
             <div className="hidden xl:flex items-center gap-3.5 text-[10px] text-slate-300 font-mono">
               <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] inline-block"></span>
-                <span className="text-emerald-300 font-medium">NOMINAL</span>
+                <span className="w-2 h-2 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)] inline-block"></span>
+                <span className="text-slate-300 font-medium">NOMINAL</span>
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)] inline-block"></span>
@@ -242,8 +242,8 @@ export const App: React.FC = () => {
                 <span className="text-red-300 font-medium">STCA ALERT</span>
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)] inline-block"></span>
-                <span className="text-sky-300 font-medium">HOOKED</span>
+                <span className="w-2 h-2 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)] inline-block"></span>
+                <span className="text-white font-medium">HOOKED</span>
               </span>
             </div>
           </div>

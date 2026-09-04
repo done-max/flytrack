@@ -31,10 +31,10 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
   if (!aircraft) {
     return (
       <div className="liquid-glass rounded-3xl p-6 text-slate-400 select-none flex flex-col items-center justify-center min-h-[300px] text-center font-sans shadow-2xl">
-        <div className="w-10 h-10 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 flex items-center justify-center mb-3 text-emerald-400 font-bold shadow-[0_0_15px_rgba(34,197,94,0.2)]">
+        <div className="w-10 h-10 rounded-2xl border border-white/20 bg-white/5 flex items-center justify-center mb-3 text-sky-400 font-bold shadow-[0_0_15px_rgba(255,255,255,0.08)]">
           +
         </div>
-        <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-300 mb-1 font-mono">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-white mb-1 font-mono">
           No Active Track Hooked
         </h3>
         <p className="text-[11px] text-slate-400 max-w-[220px] leading-relaxed">
@@ -48,14 +48,14 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
     switch (status) {
       case 'CRITICAL':
         return (
-          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full liquid-glass-red text-red-200 font-mono text-[10px] font-bold animate-pulse shadow-lg">
+          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full liquid-glass-red text-red-100 font-mono text-[10px] font-bold animate-pulse shadow-lg">
             <AlertTriangle className="w-3 h-3 text-red-400" />
             STCA CONFLICT
           </span>
         );
       case 'HIGH_RISK':
         return (
-          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full liquid-glass-red text-red-300 font-mono text-[10px] font-bold">
+          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full liquid-glass-red text-red-200 font-mono text-[10px] font-bold">
             <AlertOctagon className="w-3 h-3 text-red-400" />
             HIGH RISK
           </span>
@@ -70,7 +70,7 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
       case 'NORMAL':
       default:
         return (
-          <span className="px-2.5 py-1 rounded-full liquid-glass-green text-emerald-200 font-mono text-[10px] font-semibold">
+          <span className="px-2.5 py-1 rounded-full liquid-glass-subtle text-sky-200 font-mono text-[10px] font-semibold border border-white/15">
             NOMINAL
           </span>
         );
@@ -99,12 +99,12 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
             <span className="text-base font-bold text-white tracking-wider font-mono">
               {aircraft.callsign}
             </span>
-            <span className="text-[10px] px-2 py-0.5 liquid-glass-blue text-sky-200 font-mono rounded-lg">
+            <span className="text-[10px] px-2 py-0.5 liquid-glass-subtle text-sky-200 font-mono rounded-lg border border-white/15">
               {aircraft.model ?? 'B738'}
             </span>
           </div>
           <p className="text-[11px] text-slate-400 font-mono mt-0.5">
-            SSR: <span className="text-emerald-300 font-semibold">{aircraft.squawk ?? '1200'}</span> | ROUTE:{' '}
+            SSR: <span className="text-white font-semibold">{aircraft.squawk ?? '1200'}</span> | ROUTE:{' '}
             <span className="text-sky-300 font-semibold">
               {aircraft.origin ?? 'BOS'} ➔ {aircraft.destination ?? 'SFO'}
             </span>
@@ -127,11 +127,11 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
       {activeConflict && otherAircraft && (
         <div className="liquid-glass-red p-3 rounded-2xl flex flex-col gap-2 shadow-xl animate-pulse">
           <div className="flex items-center justify-between">
-            <span className="text-red-200 font-bold flex items-center gap-1.5 text-xs font-mono">
+            <span className="text-red-100 font-bold flex items-center gap-1.5 text-xs font-mono">
               <Flame className="w-4 h-4 text-red-400" />
               STCA PREDICTIVE CONFLICT
             </span>
-            <span className="text-[10px] bg-red-500/20 px-2 py-0.5 rounded-full border border-red-400/40 font-bold text-red-200 font-mono">
+            <span className="text-[10px] bg-red-500/20 px-2 py-0.5 rounded-full border border-red-400/40 font-bold text-red-100 font-mono">
               T-{String(activeConflict.timeToClosestApproach).padStart(2, '0')}s CPA
             </span>
           </div>
@@ -160,25 +160,25 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
       {/* Radar Flight Telemetry Matrix in Translucent Glass */}
       <div className="grid grid-cols-2 gap-2 text-[11px] liquid-glass-subtle p-3 rounded-2xl font-mono">
         <div>
-          <span className="text-[9px] text-emerald-400/80 uppercase block font-sans font-medium">RADAR COORD</span>
+          <span className="text-[9px] text-slate-400 uppercase block font-sans font-medium">RADAR COORD</span>
           <span className="text-white font-semibold">
             X:{Math.round(aircraft.x)} Y:{Math.round(aircraft.y)}
           </span>
         </div>
         <div>
-          <span className="text-[9px] text-emerald-400/80 uppercase block font-sans font-medium">ALTITUDE / FL</span>
-          <span className="text-emerald-300 font-semibold">
+          <span className="text-[9px] text-slate-400 uppercase block font-sans font-medium">ALTITUDE / FL</span>
+          <span className="text-sky-300 font-semibold">
             {aircraft.altitude.toLocaleString()} FT (FL{Math.round(aircraft.altitude / 100)})
           </span>
         </div>
         <div>
-          <span className="text-[9px] text-emerald-400/80 uppercase block font-sans font-medium">GROUND SPEED</span>
+          <span className="text-[9px] text-slate-400 uppercase block font-sans font-medium">GROUND SPEED</span>
           <span className="text-white font-semibold">
             {Math.round(aircraft.speed)} KTS / M{approxMach}
           </span>
         </div>
         <div>
-          <span className="text-[9px] text-emerald-400/80 uppercase block font-sans font-medium">TRACK / VECTOR</span>
+          <span className="text-[9px] text-slate-400 uppercase block font-sans font-medium">TRACK / VECTOR</span>
           <span className="text-sky-300 font-semibold">
             HDG {String(Math.round(aircraft.heading)).padStart(3, '0')}° MAG
           </span>
@@ -188,8 +188,8 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
       {/* Tactical Controller Clearance Panel */}
       <div className="flex flex-col gap-3 border-t border-white/10 pt-2.5">
         <div className="flex items-center justify-between">
-          <label className="text-[10px] font-semibold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5 font-mono">
-            <Sliders className="w-3.5 h-3.5 text-emerald-400" />
+          <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-1.5 font-mono">
+            <Sliders className="w-3.5 h-3.5 text-sky-400" />
             <span>ATC Vector Clearances</span>
           </label>
           <span className="text-[9px] text-sky-400 font-bold font-mono px-2 py-0.5 rounded-full bg-sky-500/10 border border-sky-400/20">DIRECT EXEC</span>
@@ -199,10 +199,10 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
         <div className="space-y-1.5 liquid-glass-subtle p-3 rounded-2xl">
           <div className="flex items-center justify-between text-[11px]">
             <span className="text-slate-300 flex items-center gap-1.5 font-medium">
-              <Compass className="w-3.5 h-3.5 text-emerald-400" />
+              <Compass className="w-3.5 h-3.5 text-sky-400" />
               Assigned Heading
             </span>
-            <span className="text-emerald-200 font-bold px-2 py-0.5 liquid-glass-green rounded-lg font-mono">
+            <span className="text-white font-bold px-2 py-0.5 liquid-glass-subtle rounded-lg font-mono border border-white/20">
               {String(Math.round(aircraft.heading)).padStart(3, '0')}° MAG
             </span>
           </div>
@@ -222,7 +222,7 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
               <button
                 key={delta}
                 onClick={() => handleHeadingChange(aircraft.heading + delta)}
-                className="flex-1 py-1 text-[10px] font-mono font-semibold liquid-glass-subtle hover:liquid-glass-green text-emerald-300 rounded-xl transition-all duration-150 cursor-pointer active:scale-95 border border-white/5"
+                className="flex-1 py-1 text-[10px] font-mono font-semibold liquid-glass-subtle hover:liquid-glass-active text-slate-200 hover:text-white rounded-xl transition-all duration-150 cursor-pointer active:scale-95 border border-white/10"
               >
                 {delta > 0 ? `+${delta}°` : `${delta}°`}
               </button>
@@ -234,10 +234,10 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
         <div className="space-y-1.5 liquid-glass-subtle p-3 rounded-2xl">
           <div className="flex items-center justify-between text-[11px]">
             <span className="text-slate-300 flex items-center gap-1.5 font-medium">
-              <Gauge className="w-3.5 h-3.5 text-emerald-400" />
+              <Gauge className="w-3.5 h-3.5 text-sky-400" />
               Assigned Speed
             </span>
-            <span className="text-emerald-200 font-bold px-2 py-0.5 liquid-glass-green rounded-lg font-mono">
+            <span className="text-white font-bold px-2 py-0.5 liquid-glass-subtle rounded-lg font-mono border border-white/20">
               {Math.round(aircraft.speed)} KTS
             </span>
           </div>
@@ -263,10 +263,10 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
         <div className="space-y-1.5 liquid-glass-subtle p-3 rounded-2xl">
           <div className="flex items-center justify-between text-[11px]">
             <span className="text-slate-300 flex items-center gap-1.5 font-medium">
-              <ArrowUpRight className="w-3.5 h-3.5 text-emerald-400" />
+              <ArrowUpRight className="w-3.5 h-3.5 text-sky-400" />
               Cleared Flight Level
             </span>
-            <span className="text-emerald-200 font-bold px-2 py-0.5 liquid-glass-green rounded-lg font-mono">
+            <span className="text-white font-bold px-2 py-0.5 liquid-glass-subtle rounded-lg font-mono border border-white/20">
               FL{Math.round(aircraft.altitude / 100)} ({aircraft.altitude.toLocaleString()} FT)
             </span>
           </div>
@@ -296,7 +296,7 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
       <div className="border-t border-white/10 pt-2.5 flex items-center justify-between">
         <button
           onClick={() => onRemoveAircraft(aircraft.id)}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold liquid-glass-red text-red-200 rounded-xl transition-all duration-150 cursor-pointer active:scale-95"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold liquid-glass-red text-red-100 rounded-xl transition-all duration-150 cursor-pointer active:scale-95"
         >
           <Trash2 className="w-3.5 h-3.5 text-red-300" />
           <span>Terminate Track</span>

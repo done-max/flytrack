@@ -19,17 +19,17 @@ export const TrajectoryLine: React.FC<TrajectoryLineProps> = ({
   if (!trajectory || trajectory.length === 0) return null;
 
   const getStatusColor = (s: AircraftStatus, selected?: boolean) => {
-    if (selected) return '#38bdf8'; // Secondary Blue when selected
+    if (selected) return '#38bdf8'; // Luminous Ice Blue when selected
     switch (s) {
       case 'CRITICAL':
         return '#ef4444'; // Red
       case 'HIGH_RISK':
         return '#f87171'; // Red-Orange
       case 'CAUTION':
-        return '#f59e0b'; // Amber
+        return '#fbbf24'; // Amber
       case 'NORMAL':
       default:
-        return '#22c55e'; // Radar Green
+        return 'rgba(56, 189, 248, 0.75)'; // Soft Ice Cyan
     }
   };
 
@@ -45,9 +45,9 @@ export const TrajectoryLine: React.FC<TrajectoryLineProps> = ({
         x2={endPoint.x}
         y2={endPoint.y}
         stroke={strokeColor}
-        strokeWidth={isSelected ? 1.2 : 0.8}
+        strokeWidth={isSelected ? 1.4 : 0.8}
         strokeDasharray="3 3"
-        strokeOpacity={isSelected ? 0.95 : 0.6}
+        strokeOpacity={isSelected ? 0.95 : 0.65}
       />
 
       {/* Discrete time prediction ticks (+30s, +60s) */}
@@ -91,11 +91,11 @@ export const TrajectoryLine: React.FC<TrajectoryLineProps> = ({
       <circle
         cx={endPoint.x}
         cy={endPoint.y}
-        r={isSelected ? 3 : 2}
+        r={isSelected ? 3.5 : 2}
         fill="none"
         stroke={strokeColor}
-        strokeWidth="1"
-        strokeOpacity="0.85"
+        strokeWidth={1.2}
+        strokeOpacity={0.9}
       />
     </g>
   );
