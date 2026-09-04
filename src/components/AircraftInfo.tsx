@@ -154,8 +154,8 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
           </div>
 
           <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-white/5">
-            <div className="bg-black/20 p-1.5 rounded-xl">
-              <span className="text-slate-400 block text-[8.5px]">COLLISION RISK</span>
+            <div className="liquid-glass-subtle p-2 rounded-xl border border-white/10">
+              <span className="text-slate-400 block text-[8.5px] uppercase">COLLISION RISK</span>
               <span
                 className={`font-bold ${
                   unifiedSafety.collisionRisk === 'CRITICAL'
@@ -171,8 +171,8 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
               </span>
             </div>
 
-            <div className="bg-black/20 p-1.5 rounded-xl">
-              <span className="text-slate-400 block text-[8.5px]">WEATHER RISK</span>
+            <div className="liquid-glass-subtle p-2 rounded-xl border border-white/10">
+              <span className="text-slate-400 block text-[8.5px] uppercase">WEATHER RISK</span>
               <span
                 className={`font-bold ${
                   unifiedSafety.weatherRisk === 'CRITICAL'
@@ -193,32 +193,32 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
 
       {/* Active Predictive Collision Diagnostic Card (Frosted Red Glass) */}
       {activeConflict && otherAircraft && (
-        <div className="liquid-glass-red p-3 rounded-2xl flex flex-col gap-2 shadow-xl animate-pulse">
+        <div className="liquid-glass-red p-3.5 rounded-2xl flex flex-col gap-2.5 shadow-xl animate-pulse">
           <div className="flex items-center justify-between">
             <span className="text-red-100 font-bold flex items-center gap-1.5 text-xs font-mono">
               <Flame className="w-4 h-4 text-red-400" />
               STCA PREDICTIVE CONFLICT
             </span>
-            <span className="text-[10px] bg-red-500/20 px-2 py-0.5 rounded-full border border-red-400/40 font-bold text-red-100 font-mono">
+            <span className="text-[10px] bg-red-500/20 px-2.5 py-0.5 rounded-full border border-red-400/40 font-bold text-red-100 font-mono">
               T-{String(activeConflict.timeToClosestApproach).padStart(2, '0')}s CPA
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-1.5 text-[10px] bg-black/40 p-2 rounded-xl border border-red-500/20 font-mono">
+          <div className="grid grid-cols-2 gap-2 text-[10px] liquid-glass-subtle p-2.5 rounded-xl border border-red-500/30 font-mono">
             <div>
-              <span className="text-slate-400 block text-[9px] font-sans">CONFLICTING TARGET</span>
+              <span className="text-slate-400 block text-[9px] font-sans uppercase">CONFLICTING TARGET</span>
               <strong className="text-red-200 font-bold">{otherAircraft.callsign} ({otherAircraft.model ?? 'AC'})</strong>
             </div>
             <div>
-              <span className="text-slate-400 block text-[9px] font-sans">MIN PREDICTED DIST</span>
+              <span className="text-slate-400 block text-[9px] font-sans uppercase">MIN PREDICTED DIST</span>
               <strong className="text-red-200 font-bold">{activeConflict.predictedClosestDistance} PX</strong>
             </div>
             <div>
-              <span className="text-slate-400 block text-[9px] font-sans">ALT DIFF AT CPA</span>
+              <span className="text-slate-400 block text-[9px] font-sans uppercase">ALT DIFF AT CPA</span>
               <strong className="text-red-200 font-bold">{activeConflict.altitudeDifference} FT</strong>
             </div>
             <div>
-              <span className="text-slate-400 block text-[9px] font-sans">RELATIVE SPEED</span>
+              <span className="text-slate-400 block text-[9px] font-sans uppercase">RELATIVE SPEED</span>
               <strong className="text-red-200 font-bold">{activeConflict.relativeVelocity.relativeSpeed} KTS</strong>
             </div>
           </div>
@@ -227,32 +227,32 @@ export const AircraftInfo: React.FC<AircraftInfoProps> = ({
 
       {/* Active Weather Hazard Diagnostic Card */}
       {activeWeather && activeWeather.weatherRisk !== 'SAFE' && (
-        <div className="liquid-glass-amber p-3 rounded-2xl flex flex-col gap-2 shadow-lg">
+        <div className="liquid-glass-amber p-3.5 rounded-2xl flex flex-col gap-2.5 shadow-lg">
           <div className="flex items-center justify-between">
             <span className="text-amber-100 font-bold flex items-center gap-1.5 text-xs font-mono">
               <CloudLightning className="w-4 h-4 text-amber-400" />
               WEATHER EXPOSURE
             </span>
-            <span className="text-[10px] bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-400/40 font-bold text-amber-100 font-mono">
+            <span className="text-[10px] bg-amber-500/20 px-2.5 py-0.5 rounded-full border border-amber-400/40 font-bold text-amber-100 font-mono">
               {activeWeather.currentExposure ? 'INSIDE CELL' : `T-${activeWeather.timeToEntry}s ENTRY`}
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-1.5 text-[10px] bg-black/40 p-2 rounded-xl border border-amber-500/20 font-mono">
+          <div className="grid grid-cols-2 gap-2 text-[10px] liquid-glass-subtle p-2.5 rounded-xl border border-amber-500/30 font-mono">
             <div>
-              <span className="text-slate-400 block text-[9px] font-sans">HAZARD CELL</span>
+              <span className="text-slate-400 block text-[9px] font-sans uppercase">HAZARD CELL</span>
               <strong className="text-amber-200 font-bold">{activeWeather.zoneName}</strong>
             </div>
             <div>
-              <span className="text-slate-400 block text-[9px] font-sans">WEATHER TYPE</span>
+              <span className="text-slate-400 block text-[9px] font-sans uppercase">WEATHER TYPE</span>
               <strong className="text-amber-200 font-bold">{activeWeather.zoneType}</strong>
             </div>
             <div>
-              <span className="text-slate-400 block text-[9px] font-sans">DISTANCE TO ZONE</span>
+              <span className="text-slate-400 block text-[9px] font-sans uppercase">DISTANCE TO ZONE</span>
               <strong className="text-amber-200 font-bold">{activeWeather.distanceToZone} PX</strong>
             </div>
             <div>
-              <span className="text-slate-400 block text-[9px] font-sans">RISK LEVEL</span>
+              <span className="text-slate-400 block text-[9px] font-sans uppercase">RISK LEVEL</span>
               <strong className="text-amber-200 font-bold">{activeWeather.weatherRisk}</strong>
             </div>
           </div>

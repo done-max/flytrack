@@ -49,7 +49,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         </div>
         <button
           onClick={onOpenAddAircraftModal}
-          className="flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold liquid-glass-interactive liquid-glass-subtle text-white rounded-xl cursor-pointer border border-white/15"
+          className="flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold liquid-glass-interactive liquid-glass-subtle text-white rounded-full cursor-pointer border border-white/15"
         >
           <PlusCircle className="w-3.5 h-3.5 text-sky-400" />
           <span>Inject Target</span>
@@ -58,13 +58,13 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
       {/* Primary Simulation Playback Bar */}
       <div>
-        <label className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold block mb-1.5 font-mono">
+        <label className="text-[9.5px] uppercase tracking-wider text-slate-400 font-semibold block mb-1.5 font-mono">
           Playback Engine
         </label>
         <div className="grid grid-cols-3 gap-1.5">
           <button
             onClick={onTogglePlayPause}
-            className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl font-bold transition-all duration-200 cursor-pointer shadow-md active:scale-95 ${
+            className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-full font-bold transition-all duration-200 cursor-pointer shadow-md active:scale-95 ${
               settings.isRunning
                 ? 'liquid-glass-red text-red-100 hover:brightness-110'
                 : 'liquid-glass-active text-white hover:brightness-110'
@@ -87,7 +87,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             onClick={onStepManual}
             disabled={settings.isRunning}
             title="Step 0.5s forward"
-            className="flex items-center justify-center gap-1 py-2 px-2 rounded-xl liquid-glass-subtle text-slate-300 hover:text-white hover:border-white/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150 cursor-pointer active:scale-95 border border-white/10"
+            className="flex items-center justify-center gap-1 py-2 px-2 rounded-full liquid-glass-subtle text-slate-300 hover:text-white hover:border-white/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150 cursor-pointer active:scale-95 border border-white/10"
           >
             <Zap className="w-3.5 h-3.5 text-sky-400" />
             <span className="font-mono text-[11px]">STEP 0.5s</span>
@@ -95,7 +95,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
           <button
             onClick={onReset}
-            className="flex items-center justify-center gap-1 py-2 px-2 rounded-xl liquid-glass-subtle text-slate-300 hover:text-red-300 hover:border-red-400/40 transition-all duration-150 cursor-pointer active:scale-95 border border-white/10"
+            className="flex items-center justify-center gap-1 py-2 px-2 rounded-full liquid-glass-subtle text-slate-300 hover:text-red-300 hover:border-red-400/40 transition-all duration-150 cursor-pointer active:scale-95 border border-white/10"
           >
             <RotateCcw className="w-3.5 h-3.5 text-red-400" />
             <span className="font-mono text-[11px]">RESET</span>
@@ -106,19 +106,19 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
       {/* Simulation Speed Multiplier (iOS Segmented Control) */}
       <div>
         <div className="flex items-center justify-between mb-1.5">
-          <label className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold font-mono">
+          <label className="text-[9.5px] uppercase tracking-wider text-slate-400 font-semibold font-mono">
             Time Warp
           </label>
           <span className="text-[11px] text-sky-400 font-bold font-mono">{settings.simSpeed}X REALTIME</span>
         </div>
-        <div className="liquid-glass-subtle p-1 rounded-2xl grid grid-cols-4 gap-1 border border-white/10">
+        <div className="liquid-glass-subtle p-1 rounded-full grid grid-cols-4 gap-1 border border-white/10">
           {speedOptions.map((speed) => {
             const isActive = settings.simSpeed === speed;
             return (
               <button
                 key={speed}
                 onClick={() => onSetSpeed(speed)}
-                className={`py-1.5 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer font-mono ${
+                className={`py-1.5 text-xs font-bold rounded-full transition-all duration-200 cursor-pointer font-mono ${
                   isActive
                     ? 'liquid-glass-active text-white shadow-[0_0_12px_rgba(255,255,255,0.2)]'
                     : 'text-slate-400 hover:text-white hover:bg-white/5'
@@ -133,7 +133,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
       {/* Scope Display Filters */}
       <div className="border-t border-white/10 pt-2.5">
-        <label className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold block mb-1.5 font-mono">
+        <label className="text-[9.5px] uppercase tracking-wider text-slate-400 font-semibold block mb-1.5 font-mono">
           Radar Video Filters
         </label>
         <div className="grid grid-cols-2 gap-1.5">

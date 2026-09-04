@@ -2,13 +2,13 @@
 
 @layer base {
   :root {
-    --font-mono: 'JetBrains Mono', 'Roboto Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;
+    --font-mono: 'JetBrains Mono', 'SF Mono', 'Roboto Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;
     --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', system-ui, sans-serif;
   }
 
   body {
-    background-color: #07090e;
-    color: #f8fafc;
+    background-color: #050811;
+    color: #f1f5f9;
     font-family: var(--font-sans);
     margin: 0;
     padding: 0;
@@ -19,92 +19,134 @@
   }
 }
 
-/* Premium Liquid Glass & iOS Glassmorphism Design System */
+/* ==========================================================
+   Apple Liquid Glass Design System Tokens & Classes
+   ========================================================== */
 
+/* 1. Primary Liquid Glass (Major Floating Panels & Cards) */
 .liquid-glass {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.02) 100%), rgba(13, 17, 23, 0.72);
-  backdrop-filter: blur(32px) saturate(210%);
-  -webkit-backdrop-filter: blur(32px) saturate(210%);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 16px 40px 0 rgba(0, 0, 0, 0.6),
-              inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.28),
-              inset 0 -1px 1px 0 rgba(0, 0, 0, 0.5);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.02) 100%
+  ), rgba(11, 16, 26, 0.76);
+  backdrop-filter: blur(36px) saturate(200%);
+  -webkit-backdrop-filter: blur(36px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 20px 50px 0 rgba(0, 0, 0, 0.65),
+              inset 0 1px 1px 0 rgba(255, 255, 255, 0.3),
+              inset 0 -1px 1px 0 rgba(0, 0, 0, 0.4);
 }
 
+/* 2. Subtle Liquid Glass (Nested sub-cards, pills, chips, list items) */
 .liquid-glass-subtle {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.015) 100%), rgba(15, 20, 28, 0.55);
-  backdrop-filter: blur(24px) saturate(190%);
-  -webkit-backdrop-filter: blur(24px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.4),
-              inset 0 1px 0 0 rgba(255, 255, 255, 0.18);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.07) 0%,
+    rgba(255, 255, 255, 0.015) 100%
+  ), rgba(15, 22, 34, 0.58);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.35),
+              inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
 }
 
+/* 3. Interactive Floating Glass with Specular Response */
 .liquid-glass-interactive {
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .liquid-glass-interactive:hover {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.04) 100%), rgba(20, 27, 38, 0.78);
-  border-color: rgba(255, 255, 255, 0.28);
-  box-shadow: 0 20px 48px 0 rgba(0, 0, 0, 0.65),
-              inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.38),
-              0 0 24px 0 rgba(255, 255, 255, 0.08);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0.04) 100%
+  ), rgba(20, 30, 46, 0.82);
+  border-color: rgba(255, 255, 255, 0.32);
+  box-shadow: 0 16px 36px 0 rgba(0, 0, 0, 0.5),
+              inset 0 1px 1px 0 rgba(255, 255, 255, 0.45),
+              0 0 20px 0 rgba(56, 189, 248, 0.1);
   transform: translateY(-1px);
 }
 
 .liquid-glass-interactive:active {
-  transform: translateY(0.5px) scale(0.99);
+  transform: translateY(0.5px) scale(0.985);
 }
 
+/* 4. Active / Selected Elevated Glass Layer */
 .liquid-glass-active {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.06) 100%), rgba(30, 41, 59, 0.85);
-  backdrop-filter: blur(28px) saturate(210%);
-  -webkit-backdrop-filter: blur(28px) saturate(210%);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  box-shadow: 0 12px 32px 0 rgba(0, 0, 0, 0.5),
-              inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.45),
-              0 0 20px 0 rgba(255, 255, 255, 0.15);
-}
-
-.liquid-glass-blue {
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.22) 0%, rgba(59, 130, 246, 0.06) 100%), rgba(8, 20, 38, 0.75);
-  backdrop-filter: blur(24px) saturate(200%);
-  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  background: linear-gradient(
+    135deg,
+    rgba(56, 189, 248, 0.2) 0%,
+    rgba(255, 255, 255, 0.08) 100%
+  ), rgba(24, 38, 58, 0.88);
+  backdrop-filter: blur(32px) saturate(220%);
+  -webkit-backdrop-filter: blur(32px) saturate(220%);
   border: 1px solid rgba(125, 211, 252, 0.45);
-  box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.5),
+  box-shadow: 0 12px 32px 0 rgba(0, 0, 0, 0.45),
+              inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.5),
+              0 0 24px 0 rgba(56, 189, 248, 0.25);
+}
+
+/* 5. Blue / Tactical Cyan Glass */
+.liquid-glass-blue {
+  background: linear-gradient(
+    135deg,
+    rgba(56, 189, 248, 0.2) 0%,
+    rgba(59, 130, 246, 0.05) 100%
+  ), rgba(8, 22, 42, 0.78);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  border: 1px solid rgba(125, 211, 252, 0.4);
+  box-shadow: 0 12px 32px 0 rgba(0, 0, 0, 0.45),
               inset 0 1px 1px 0 rgba(186, 230, 253, 0.4),
-              0 0 25px -4px rgba(56, 189, 248, 0.35);
+              0 0 24px -4px rgba(56, 189, 248, 0.3);
 }
 
+/* 6. Red / Controlled Critical Alert Glass */
 .liquid-glass-red {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(185, 28, 28, 0.08) 100%), rgba(32, 8, 12, 0.82);
-  backdrop-filter: blur(24px) saturate(200%);
-  -webkit-backdrop-filter: blur(24px) saturate(200%);
-  border: 1px solid rgba(248, 113, 113, 0.5);
-  box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.55),
-              inset 0 1px 1px 0 rgba(254, 202, 202, 0.45),
-              0 0 30px -4px rgba(239, 68, 68, 0.4);
-}
-
-.liquid-glass-green {
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.16) 0%, rgba(16, 185, 129, 0.04) 100%), rgba(6, 22, 14, 0.72);
-  backdrop-filter: blur(24px) saturate(200%);
-  -webkit-backdrop-filter: blur(24px) saturate(200%);
-  border: 1px solid rgba(74, 222, 128, 0.35);
+  background: linear-gradient(
+    135deg,
+    rgba(239, 68, 68, 0.22) 0%,
+    rgba(185, 28, 28, 0.06) 100%
+  ), rgba(34, 10, 16, 0.84);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  border: 1px solid rgba(248, 113, 113, 0.45);
   box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.5),
-              inset 0 1px 1px 0 rgba(134, 239, 172, 0.35),
-              0 0 20px -4px rgba(34, 197, 94, 0.25);
+              inset 0 1px 1px 0 rgba(254, 202, 202, 0.4),
+              0 0 28px -4px rgba(239, 68, 68, 0.35);
 }
 
+/* 7. Amber / Advisory Caution Glass */
 .liquid-glass-amber {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.06) 100%), rgba(28, 18, 6, 0.8);
-  backdrop-filter: blur(24px) saturate(200%);
-  -webkit-backdrop-filter: blur(24px) saturate(200%);
-  border: 1px solid rgba(251, 191, 36, 0.45);
-  box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.5),
-              inset 0 1px 1px 0 rgba(253, 230, 138, 0.4),
-              0 0 25px -4px rgba(245, 158, 11, 0.3);
+  background: linear-gradient(
+    135deg,
+    rgba(245, 158, 11, 0.18) 0%,
+    rgba(217, 119, 6, 0.05) 100%
+  ), rgba(30, 20, 8, 0.82);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  box-shadow: 0 12px 32px 0 rgba(0, 0, 0, 0.45),
+              inset 0 1px 1px 0 rgba(253, 230, 138, 0.35),
+              0 0 24px -4px rgba(245, 158, 11, 0.28);
+}
+
+/* 8. Emerald / Nominal Safe Glass */
+.liquid-glass-green {
+  background: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.15) 0%,
+    rgba(16, 185, 129, 0.03) 100%
+  ), rgba(6, 24, 16, 0.75);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  border: 1px solid rgba(74, 222, 128, 0.32);
+  box-shadow: 0 12px 32px 0 rgba(0, 0, 0, 0.45),
+              inset 0 1px 1px 0 rgba(134, 239, 172, 0.3),
+              0 0 20px -4px rgba(34, 197, 94, 0.2);
 }
 
 /* iOS Glass Slider Controls with Crisp Specular Thumb */
@@ -133,7 +175,7 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 input[type="range"]::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
+  transform: scale(1.18);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6), 0 0 18px rgba(56, 189, 248, 0.8);
 }
 
@@ -147,13 +189,13 @@ input[type="range"]::-moz-range-thumb {
   cursor: pointer;
 }
 
-/* Ambient Floating Lights (Ice Cyan, Sapphire, Deep Plum) */
+/* Ambient Floating Lights (Ice Cyan, Sapphire, Deep Indigo) */
 @keyframes ambient-float-1 {
   0%, 100% {
     transform: translate(0px, 0px) scale(1);
   }
   50% {
-    transform: translate(45px, -35px) scale(1.1);
+    transform: translate(40px, -30px) scale(1.08);
   }
 }
 
@@ -162,16 +204,16 @@ input[type="range"]::-moz-range-thumb {
     transform: translate(0px, 0px) scale(1);
   }
   50% {
-    transform: translate(-40px, 30px) scale(0.92);
+    transform: translate(-35px, 25px) scale(0.94);
   }
 }
 
 .liquid-orb-1 {
-  animation: ambient-float-1 18s ease-in-out infinite;
+  animation: ambient-float-1 20s ease-in-out infinite;
 }
 
 .liquid-orb-2 {
-  animation: ambient-float-2 22s ease-in-out infinite;
+  animation: ambient-float-2 24s ease-in-out infinite;
 }
 
 /* Custom iOS Frosted Scrollbars */
@@ -185,17 +227,17 @@ input[type="range"]::-moz-range-thumb {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.16);
   border-radius: 9999px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(10px);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.32);
 }
 
-/* Radar Sweep Line Beam (Soft Ice Cyan Gradient) */
+/* Radar Sweep Line Beam */
 @keyframes radar-beam {
   from {
     transform: rotate(0deg);
@@ -206,7 +248,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .radar-sweep-beam {
-  animation: radar-beam 5s linear infinite;
+  animation: radar-beam 6s linear infinite;
   transform-origin: center center;
 }
 
@@ -214,3 +256,4 @@ svg {
   shape-rendering: geometricPrecision;
   text-rendering: geometricPrecision;
 }
+

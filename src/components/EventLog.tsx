@@ -73,12 +73,12 @@ export const EventLog: React.FC<EventLogProps> = ({
       </div>
 
       {/* Category Filter Pills */}
-      <div className="liquid-glass-subtle p-1 rounded-2xl grid grid-cols-3 gap-1 border border-white/10 font-mono text-[10px]">
+      <div className="liquid-glass-subtle p-1 rounded-full grid grid-cols-3 gap-1 border border-white/10 font-mono text-[10px]">
         <button
           onClick={() => setFilterCategory('ALL')}
-          className={`py-1 rounded-xl font-bold transition-all cursor-pointer ${
+          className={`py-1.5 rounded-full font-bold transition-all cursor-pointer ${
             filterCategory === 'ALL'
-              ? 'liquid-glass-active text-white'
+              ? 'liquid-glass-active text-white shadow-sm'
               : 'text-slate-400 hover:text-white'
           }`}
         >
@@ -86,9 +86,9 @@ export const EventLog: React.FC<EventLogProps> = ({
         </button>
         <button
           onClick={() => setFilterCategory('COLLISION')}
-          className={`py-1 rounded-xl font-bold transition-all cursor-pointer ${
+          className={`py-1.5 rounded-full font-bold transition-all cursor-pointer ${
             filterCategory === 'COLLISION'
-              ? 'liquid-glass-active text-white'
+              ? 'liquid-glass-active text-white shadow-sm'
               : 'text-slate-400 hover:text-white'
           }`}
         >
@@ -96,9 +96,9 @@ export const EventLog: React.FC<EventLogProps> = ({
         </button>
         <button
           onClick={() => setFilterCategory('WEATHER')}
-          className={`py-1 rounded-xl font-bold transition-all cursor-pointer ${
+          className={`py-1.5 rounded-full font-bold transition-all cursor-pointer ${
             filterCategory === 'WEATHER'
-              ? 'liquid-glass-active text-white'
+              ? 'liquid-glass-active text-white shadow-sm'
               : 'text-slate-400 hover:text-white'
           }`}
         >
@@ -116,7 +116,7 @@ export const EventLog: React.FC<EventLogProps> = ({
           </span>
         </div>
       ) : (
-        <div className="flex flex-col gap-2 max-h-[340px] overflow-y-auto pr-0.5">
+        <div className="flex flex-col gap-2 max-h-[340px] overflow-y-auto custom-scrollbar pr-0.5">
           {filteredList.map((evt) => {
             if (evt.category === 'COLLISION') {
               const isDetected = evt.type === 'CONFLICT_DETECTED';
@@ -143,7 +143,7 @@ export const EventLog: React.FC<EventLogProps> = ({
                         <CheckCircle2 className="w-3.5 h-3.5 text-sky-400 shrink-0" />
                       )}
                       <span
-                        className={`text-[9px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${
+                        className={`text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                           isEscalated
                             ? 'bg-red-500/30 text-red-200 border border-red-500/40'
                             : isDetected

@@ -77,7 +77,7 @@ export const CollisionRiskMonitor: React.FC<CollisionRiskMonitorProps> = ({
         </div>
       ) : (
         /* Active Conflict Cards */
-        <div className="flex flex-col gap-2.5 max-h-[380px] overflow-y-auto pr-0.5">
+        <div className="flex flex-col gap-2.5 max-h-[380px] overflow-y-auto custom-scrollbar pr-0.5">
           {conflicts.map((conflict, index) => {
             const isSelectedPair =
               selectedAircraftId === conflict.aircraftA.id ||
@@ -118,7 +118,7 @@ export const CollisionRiskMonitor: React.FC<CollisionRiskMonitorProps> = ({
                   </div>
 
                   <span
-                    className={`px-2 py-0.5 rounded-lg text-[9px] font-mono font-bold tracking-wider uppercase border flex items-center gap-1 ${
+                    className={`px-2 py-0.5 rounded-full text-[9px] font-mono font-bold tracking-wider uppercase border flex items-center gap-1 ${
                       isCritical
                         ? 'bg-red-500/30 text-red-200 border-red-400/60 animate-pulse'
                         : isHighRisk
@@ -134,10 +134,10 @@ export const CollisionRiskMonitor: React.FC<CollisionRiskMonitorProps> = ({
                 {/* Telemetry Grid */}
                 <div className="grid grid-cols-2 gap-2 font-mono text-[10px]">
                   {/* Time to CPA Countdown */}
-                  <div className="bg-black/30 p-2 rounded-xl border border-white/10">
+                  <div className="liquid-glass-subtle p-2.5 rounded-2xl border border-white/10">
                     <div className="flex items-center gap-1 text-slate-400 mb-0.5">
                       <Clock className="w-3 h-3 text-red-400" />
-                      <span>TIME TO CPA</span>
+                      <span className="text-[9px] uppercase">TIME TO CPA</span>
                     </div>
                     <span className="text-base font-black text-red-400 tracking-tight">
                       {conflict.timeToClosestApproach}s
@@ -145,10 +145,10 @@ export const CollisionRiskMonitor: React.FC<CollisionRiskMonitorProps> = ({
                   </div>
 
                   {/* Predicted Min Separation */}
-                  <div className="bg-black/30 p-2 rounded-xl border border-white/10">
+                  <div className="liquid-glass-subtle p-2.5 rounded-2xl border border-white/10">
                     <div className="flex items-center gap-1 text-slate-400 mb-0.5">
                       <Navigation className="w-3 h-3 text-sky-400" />
-                      <span>PREDICTED CPA</span>
+                      <span className="text-[9px] uppercase">PREDICTED CPA</span>
                     </div>
                     <span className="text-base font-black text-white tracking-tight">
                       {conflict.predictedClosestDistance} <span className="text-[10px] text-slate-400">PX</span>
@@ -156,16 +156,16 @@ export const CollisionRiskMonitor: React.FC<CollisionRiskMonitorProps> = ({
                   </div>
 
                   {/* Current Distance */}
-                  <div className="bg-black/20 p-2 rounded-xl border border-white/5">
-                    <span className="text-slate-400 block text-[9px]">CURRENT DIST</span>
+                  <div className="liquid-glass-subtle p-2.5 rounded-2xl border border-white/10">
+                    <span className="text-slate-400 block text-[9px] uppercase">CURRENT DIST</span>
                     <span className="text-slate-200 font-bold">
                       {conflict.currentDistance} PX
                     </span>
                   </div>
 
                   {/* Altitude Difference */}
-                  <div className="bg-black/20 p-2 rounded-xl border border-white/5">
-                    <span className="text-slate-400 block text-[9px]">ALTITUDE Δ @ CPA</span>
+                  <div className="liquid-glass-subtle p-2.5 rounded-2xl border border-white/10">
+                    <span className="text-slate-400 block text-[9px] uppercase">ALTITUDE Δ @ CPA</span>
                     <span className={`font-bold ${conflict.altitudeDifference < 1000 ? 'text-red-400' : 'text-slate-200'}`}>
                       {conflict.altitudeDifference} FT
                     </span>

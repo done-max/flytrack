@@ -47,7 +47,7 @@ export const AddAircraftModal: React.FC<AddAircraftModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-2xl p-4 font-sans select-none animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-2xl p-4 font-sans select-none animate-fade-in">
       <div className="liquid-glass rounded-3xl max-w-lg w-full p-6 shadow-2xl text-slate-200 text-xs border border-white/20">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
@@ -75,7 +75,7 @@ export const AddAircraftModal: React.FC<AddAircraftModalProps> = ({
                 required
                 value={callsign}
                 onChange={(e) => setCallsign(e.target.value)}
-                className="w-full liquid-glass-subtle rounded-xl px-3 py-2 text-white font-mono font-bold uppercase outline-none focus:border-white/40 transition-colors border border-white/10"
+                className="w-full liquid-glass-subtle rounded-2xl px-3 py-2 text-white font-mono font-bold uppercase outline-none focus:border-white/40 transition-colors border border-white/10"
               />
             </div>
             <div>
@@ -83,7 +83,7 @@ export const AddAircraftModal: React.FC<AddAircraftModalProps> = ({
               <select
                 value={model}
                 onChange={(e) => setModel(e.target.value)}
-                className="w-full liquid-glass-subtle rounded-xl px-3 py-2 text-slate-200 outline-none focus:border-white/40 transition-colors border border-white/10"
+                className="w-full liquid-glass-subtle rounded-2xl px-3 py-2 text-slate-200 outline-none focus:border-white/40 transition-colors border border-white/10"
               >
                 <option value="B787-9">B787-9 (Heavy)</option>
                 <option value="A350-900">A350-900 (Heavy)</option>
@@ -103,7 +103,7 @@ export const AddAircraftModal: React.FC<AddAircraftModalProps> = ({
                 value={origin}
                 onChange={(e) => setOrigin(e.target.value)}
                 maxLength={4}
-                className="w-full liquid-glass-subtle rounded-xl px-3 py-2 text-sky-300 font-mono font-bold uppercase outline-none focus:border-sky-400 transition-colors border border-white/10"
+                className="w-full liquid-glass-subtle rounded-2xl px-3 py-2 text-sky-300 font-mono font-bold uppercase outline-none focus:border-sky-400 transition-colors border border-white/10"
               />
             </div>
             <div>
@@ -113,7 +113,7 @@ export const AddAircraftModal: React.FC<AddAircraftModalProps> = ({
                 value={destination}
                 onChange={(e) => setDestination(e.target.value)}
                 maxLength={4}
-                className="w-full liquid-glass-subtle rounded-xl px-3 py-2 text-sky-300 font-mono font-bold uppercase outline-none focus:border-sky-400 transition-colors border border-white/10"
+                className="w-full liquid-glass-subtle rounded-2xl px-3 py-2 text-sky-300 font-mono font-bold uppercase outline-none focus:border-sky-400 transition-colors border border-white/10"
               />
             </div>
           </div>
@@ -127,7 +127,7 @@ export const AddAircraftModal: React.FC<AddAircraftModalProps> = ({
                 max="980"
                 value={x}
                 onChange={(e) => setX(Number(e.target.value))}
-                className="w-full liquid-glass-subtle rounded-xl px-3 py-2 text-white font-mono outline-none focus:border-white/40 transition-colors border border-white/10"
+                className="w-full liquid-glass-subtle rounded-2xl px-3 py-2 text-white font-mono outline-none focus:border-white/40 transition-colors border border-white/10"
               />
             </div>
             <div>
@@ -138,7 +138,7 @@ export const AddAircraftModal: React.FC<AddAircraftModalProps> = ({
                 max="730"
                 value={y}
                 onChange={(e) => setY(Number(e.target.value))}
-                className="w-full liquid-glass-subtle rounded-xl px-3 py-2 text-white font-mono outline-none focus:border-white/40 transition-colors border border-white/10"
+                className="w-full liquid-glass-subtle rounded-2xl px-3 py-2 text-white font-mono outline-none focus:border-white/40 transition-colors border border-white/10"
               />
             </div>
           </div>
@@ -200,13 +200,13 @@ export const AddAircraftModal: React.FC<AddAircraftModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-slate-400 hover:text-white liquid-glass-subtle rounded-xl transition-colors cursor-pointer border border-white/10"
+              className="px-4 py-2 text-slate-400 hover:text-white liquid-glass-subtle rounded-full transition-colors cursor-pointer border border-white/10 font-mono"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex items-center gap-1.5 px-5 py-2 liquid-glass-active text-white font-bold rounded-xl transition-all duration-200 cursor-pointer shadow-lg active:scale-95"
+              className="flex items-center gap-1.5 px-6 py-2.5 liquid-glass-active text-white font-bold rounded-full transition-all duration-200 cursor-pointer shadow-lg active:scale-95 font-mono"
             >
               <PlusCircle className="w-4 h-4 text-sky-400" />
               <span>Inject Target</span>

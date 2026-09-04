@@ -84,7 +84,7 @@ export const FlightStripBoard: React.FC<FlightStripBoardProps> = ({
                 </div>
 
                 {/* Strip Matrix Grid: FL, Speed, Heading, Squawk */}
-                <div className="grid grid-cols-4 gap-1.5 text-[10px] bg-black/40 p-1.5 rounded-xl border border-white/5 font-mono">
+                <div className="grid grid-cols-4 gap-1.5 text-[10px] liquid-glass-subtle p-1.5 rounded-xl border border-white/10 font-mono">
                   <div>
                     <span className="text-[8.5px] text-slate-400 block font-sans">FLIGHT LVL</span>
                     <span className="text-sky-300 font-semibold">FL{Math.round(ac.altitude / 100)}</span>

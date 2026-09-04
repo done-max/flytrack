@@ -120,7 +120,7 @@ export const WeatherAnalyzer: React.FC<WeatherAnalyzerProps> = ({
 
       {/* Active Weather Warnings Banner Feed */}
       {zoneInteractions.length > 0 && (
-        <div className="flex flex-col gap-1.5 max-h-[160px] overflow-y-auto pr-0.5">
+        <div className="flex flex-col gap-1.5 max-h-[160px] overflow-y-auto custom-scrollbar pr-0.5">
           {zoneInteractions.map((inter, idx) => {
             const isCritical = inter.weatherRisk === 'CRITICAL';
             const isHigh = inter.weatherRisk === 'HIGH';
@@ -146,7 +146,7 @@ export const WeatherAnalyzer: React.FC<WeatherAnalyzerProps> = ({
                   </button>
 
                   <span
-                    className={`text-[9px] px-1.5 py-0.2 rounded font-bold uppercase ${
+                    className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase ${
                       isCritical
                         ? 'bg-red-500/30 text-red-200'
                         : isHigh
@@ -190,7 +190,7 @@ export const WeatherAnalyzer: React.FC<WeatherAnalyzerProps> = ({
             Clear sector atmospheric profile. Zero hazard zones active.
           </div>
         ) : (
-          <div className="flex flex-col gap-1.5 max-h-[180px] overflow-y-auto pr-0.5">
+          <div className="flex flex-col gap-1.5 max-h-[180px] overflow-y-auto custom-scrollbar pr-0.5">
             {weatherZones.map((zone) => {
               const isSelected = selectedZoneId === zone.id;
               const isStorm = zone.type === 'THUNDERSTORM' || zone.type === 'STORM';
@@ -219,7 +219,7 @@ export const WeatherAnalyzer: React.FC<WeatherAnalyzerProps> = ({
 
                     <div className="flex items-center gap-1.5">
                       <span
-                        className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded uppercase ${
+                        className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded-full uppercase ${
                           zone.severity === 'CRITICAL'
                             ? 'bg-red-500/30 text-red-200'
                             : zone.severity === 'HIGH'
@@ -288,15 +288,15 @@ export const WeatherAnalyzer: React.FC<WeatherAnalyzerProps> = ({
             </p>
 
             <div className="grid grid-cols-2 gap-2 text-[9.5px] font-mono text-slate-300 pt-1 border-t border-white/5">
-              <div className="bg-black/20 p-1.5 rounded-lg">
-                <span className="text-slate-400 block text-[8.5px]">ALTITUDE SPAN</span>
-                <strong>
+              <div className="liquid-glass-subtle p-2 rounded-xl border border-white/10">
+                <span className="text-slate-400 block text-[8.5px] uppercase">ALTITUDE SPAN</span>
+                <strong className="text-white">
                   FL{Math.round(selectedZone.minAltitudeFt / 100)} — FL{Math.round(selectedZone.maxAltitudeFt / 100)}
                 </strong>
               </div>
-              <div className="bg-black/20 p-1.5 rounded-lg">
-                <span className="text-slate-400 block text-[8.5px]">AFFECTED TARGETS</span>
-                <strong className={interactionsForSelected.length > 0 ? 'text-red-300' : 'text-sky-300'}>
+              <div className="liquid-glass-subtle p-2 rounded-xl border border-white/10">
+                <span className="text-slate-400 block text-[8.5px] uppercase">AFFECTED TARGETS</span>
+                <strong className={interactionsForSelected.length > 0 ? 'text-red-300 font-bold' : 'text-sky-300 font-bold'}>
                   {interactionsForSelected.length} Aircraft
                 </strong>
               </div>

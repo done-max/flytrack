@@ -188,9 +188,9 @@ export const AIDecisionCenter: React.FC<AIDecisionCenterProps> = ({
       </div>
 
       {/* Multi-Factor Safety Risk Breakdown Matrix */}
-      <div className="grid grid-cols-3 gap-1.5 font-mono text-[9.5px]">
-        <div className="bg-black/20 p-2 rounded-xl border border-white/5 text-center">
-          <span className="text-slate-400 block text-[8.5px]">COLLISION</span>
+      <div className="grid grid-cols-3 gap-2 font-mono text-[9.5px]">
+        <div className="liquid-glass-subtle p-2.5 rounded-2xl border border-white/10 text-center">
+          <span className="text-slate-400 block text-[8.5px] uppercase">COLLISION</span>
           <strong
             className={
               collisionRisk === 'CRITICAL'
@@ -206,8 +206,8 @@ export const AIDecisionCenter: React.FC<AIDecisionCenterProps> = ({
           </strong>
         </div>
 
-        <div className="bg-black/20 p-2 rounded-xl border border-white/5 text-center">
-          <span className="text-slate-400 block text-[8.5px]">WEATHER</span>
+        <div className="liquid-glass-subtle p-2.5 rounded-2xl border border-white/10 text-center">
+          <span className="text-slate-400 block text-[8.5px] uppercase">WEATHER</span>
           <strong
             className={
               weatherRisk === 'CRITICAL'
@@ -223,8 +223,8 @@ export const AIDecisionCenter: React.FC<AIDecisionCenterProps> = ({
           </strong>
         </div>
 
-        <div className="bg-black/20 p-2 rounded-xl border border-white/5 text-center">
-          <span className="text-slate-400 block text-[8.5px]">CONFIDENCE</span>
+        <div className="liquid-glass-subtle p-2.5 rounded-2xl border border-white/10 text-center">
+          <span className="text-slate-400 block text-[8.5px] uppercase">CONFIDENCE</span>
           <strong className="text-white">{confidence}%</strong>
         </div>
       </div>
@@ -306,37 +306,37 @@ export const AIDecisionCenter: React.FC<AIDecisionCenterProps> = ({
           <span className="text-[9px] text-slate-500">{candidates.length} Vectors</span>
         </label>
 
-        <div className="flex flex-col gap-1 max-h-[160px] overflow-y-auto pr-0.5">
+        <div className="flex flex-col gap-1.5 max-h-[160px] overflow-y-auto custom-scrollbar pr-0.5">
           {candidates.map((cand) => {
             const isSelectedAction = cand.type === recommendedAction;
 
             return (
               <div
                 key={cand.id}
-                className={`p-2 rounded-xl border flex items-center justify-between text-[10px] font-mono transition-all ${
+                className={`p-2.5 rounded-2xl border flex items-center justify-between text-[10px] font-mono transition-all ${
                   isSelectedAction
-                    ? 'liquid-glass-active border-white/40 text-white shadow-sm'
+                    ? 'liquid-glass-active border-sky-400/50 text-white shadow-sm'
                     : cand.isViable
-                    ? 'liquid-glass-subtle border-white/5 text-slate-300'
-                    : 'bg-black/30 border-red-500/20 text-slate-500 opacity-70'
+                    ? 'liquid-glass-subtle border-white/10 text-slate-300 hover:border-white/20'
+                    : 'liquid-glass-subtle border-red-500/20 text-slate-500 opacity-60'
                 }`}
               >
-                <div className="flex items-center gap-1.5">
-                  <span className={`w-1.5 h-1.5 rounded-full ${cand.isViable ? 'bg-emerald-400' : 'bg-red-500'}`} />
+                <div className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${cand.isViable ? 'bg-emerald-400' : 'bg-red-500'}`} />
                   <span className="font-semibold">{cand.label}</span>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-[9px] text-slate-400">
+                  <span className="text-[9.5px] text-slate-400">
                     Risk: <strong className={cand.totalManeuverRisk < 30 ? 'text-emerald-300' : cand.totalManeuverRisk < 70 ? 'text-amber-300' : 'text-red-400'}>{cand.totalManeuverRisk}%</strong>
                   </span>
                   <span
-                    className={`text-[8.5px] px-1.5 py-0.2 rounded font-bold uppercase ${
+                    className={`text-[8.5px] px-2 py-0.5 rounded-full font-bold uppercase ${
                       isSelectedAction
-                        ? 'bg-sky-500 text-white'
+                        ? 'bg-sky-500/30 text-sky-200 border border-sky-400/40'
                         : cand.isViable
-                        ? 'bg-emerald-500/20 text-emerald-200'
-                        : 'bg-red-500/20 text-red-300'
+                        ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/30'
+                        : 'bg-red-500/20 text-red-300 border border-red-500/30'
                     }`}
                   >
                     {isSelectedAction ? 'OPTIMAL' : cand.isViable ? 'VIABLE' : 'VETOED'}
@@ -355,51 +355,51 @@ export const AIDecisionCenter: React.FC<AIDecisionCenterProps> = ({
 
       {/* Model Performance Metrics Modal */}
       {showMetricsModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="liquid-glass max-w-lg w-full rounded-3xl p-5 border border-white/20 shadow-2xl flex flex-col gap-3 font-sans text-xs">
-            <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-2xl flex items-center justify-center z-50 p-4">
+          <div className="liquid-glass max-w-lg w-full rounded-3xl p-6 border border-white/20 shadow-2xl flex flex-col gap-4 font-sans text-xs">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <div className="flex items-center gap-2">
                 <Brain className="w-4 h-4 text-sky-400" />
-                <h3 className="text-xs font-bold text-white uppercase font-mono">
+                <h3 className="text-xs font-bold text-white uppercase font-mono tracking-wider">
                   Machine Learning Model Performance & Metrics
                 </h3>
               </div>
               <button
                 onClick={() => setShowMetricsModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 cursor-pointer"
+                className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 cursor-pointer transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="grid grid-cols-3 gap-2 text-center font-mono text-[10px]">
-              <div className="bg-black/30 p-2.5 rounded-xl border border-white/10">
-                <span className="text-slate-400 block text-[9px]">ALGORITHM</span>
+              <div className="liquid-glass-subtle p-3 rounded-2xl border border-white/10">
+                <span className="text-slate-400 block text-[9px] uppercase">ALGORITHM</span>
                 <strong className="text-white text-xs">Random Forest</strong>
-                <span className="text-[8.5px] text-slate-400 block">12 Trees, Gini</span>
+                <span className="text-[8.5px] text-slate-400 block mt-0.5">12 Trees, Gini</span>
               </div>
-              <div className="bg-black/30 p-2.5 rounded-xl border border-white/10">
-                <span className="text-slate-400 block text-[9px]">TEST ACCURACY</span>
+              <div className="liquid-glass-subtle p-3 rounded-2xl border border-white/10">
+                <span className="text-slate-400 block text-[9px] uppercase">TEST ACCURACY</span>
                 <strong className="text-emerald-400 text-xs">{(metrics.accuracy * 100).toFixed(1)}%</strong>
-                <span className="text-[8.5px] text-slate-400 block">On Unseen Data</span>
+                <span className="text-[8.5px] text-slate-400 block mt-0.5">On Unseen Data</span>
               </div>
-              <div className="bg-black/30 p-2.5 rounded-xl border border-white/10">
-                <span className="text-slate-400 block text-[9px]">DATASET</span>
+              <div className="liquid-glass-subtle p-3 rounded-2xl border border-white/10">
+                <span className="text-slate-400 block text-[9px] uppercase">DATASET</span>
                 <strong className="text-sky-300 text-xs">{metrics.sampleCount}</strong>
-                <span className="text-[8.5px] text-slate-400 block">Synthetic Situations</span>
+                <span className="text-[8.5px] text-slate-400 block mt-0.5">Synthetic Situations</span>
               </div>
             </div>
 
             {/* Precision & Recall Table */}
-            <div className="border border-white/10 rounded-2xl overflow-hidden font-mono text-[9.5px]">
-              <div className="grid grid-cols-4 bg-white/10 p-2 font-bold text-slate-200">
+            <div className="liquid-glass-subtle border border-white/10 rounded-2xl overflow-hidden font-mono text-[9.5px]">
+              <div className="grid grid-cols-4 bg-white/5 p-2.5 font-bold text-slate-200">
                 <span>CLASS</span>
                 <span className="text-center">PRECISION</span>
                 <span className="text-center">RECALL</span>
                 <span className="text-center">F1-SCORE</span>
               </div>
               {(['SAFE', 'LOW', 'MODERATE', 'HIGH', 'CRITICAL'] as const).map((cls) => (
-                <div key={cls} className="grid grid-cols-4 p-2 border-t border-white/5 text-slate-300">
+                <div key={cls} className="grid grid-cols-4 p-2.5 border-t border-white/5 text-slate-300">
                   <span className="font-bold text-white">{cls}</span>
                   <span className="text-center">{metrics.precision[cls]?.toFixed(2) ?? '0.95'}</span>
                   <span className="text-center">{metrics.recall[cls]?.toFixed(2) ?? '0.94'}</span>
@@ -411,11 +411,11 @@ export const AIDecisionCenter: React.FC<AIDecisionCenterProps> = ({
             {/* Feature Importance */}
             <div className="flex flex-col gap-1.5 font-mono text-[9.5px]">
               <span className="text-slate-400 uppercase text-[9px] font-bold">Key Feature Importances</span>
-              <div className="grid grid-cols-2 gap-1.5">
+              <div className="grid grid-cols-2 gap-2">
                 {Object.entries(metrics.featureImportances).slice(0, 6).map(([feat, imp]) => (
-                  <div key={feat} className="bg-black/20 p-1.5 rounded-lg flex items-center justify-between">
+                  <div key={feat} className="liquid-glass-subtle p-2 rounded-xl border border-white/10 flex items-center justify-between">
                     <span className="text-slate-300 text-[8.5px] truncate max-w-[130px]">{feat}</span>
-                    <strong className="text-sky-300">{(imp * 100).toFixed(0)}%</strong>
+                    <strong className="text-sky-300 font-bold">{(imp * 100).toFixed(0)}%</strong>
                   </div>
                 ))}
               </div>
@@ -423,7 +423,7 @@ export const AIDecisionCenter: React.FC<AIDecisionCenterProps> = ({
 
             <button
               onClick={() => setShowMetricsModal(false)}
-              className="mt-2 py-2 rounded-xl liquid-glass-active text-white font-bold font-mono text-center cursor-pointer"
+              className="mt-1 py-2.5 rounded-2xl liquid-glass-active text-white font-bold font-mono text-center cursor-pointer hover:brightness-110 active:scale-[0.99] transition-all"
             >
               Close Metrics Inspector
             </button>

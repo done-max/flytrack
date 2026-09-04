@@ -312,11 +312,11 @@ export const App: React.FC = () => {
   );
 
   return (
-    <div className="relative flex flex-col h-screen w-screen bg-[#07090e] text-slate-200 overflow-hidden font-sans select-none">
-      {/* Background Liquid Ambient Light Orbs */}
-      <div className="absolute top-1/4 left-1/6 w-96 h-96 rounded-full bg-sky-600/12 blur-[140px] pointer-events-none liquid-orb-1" />
-      <div className="absolute bottom-1/4 right-1/5 w-[32rem] h-[32rem] rounded-full bg-indigo-600/10 blur-[160px] pointer-events-none liquid-orb-2" />
-      <div className="absolute top-2/3 left-1/3 w-80 h-80 rounded-full bg-cyan-500/8 blur-[130px] pointer-events-none" />
+    <div className="relative flex flex-col h-screen w-screen bg-[#050811] text-slate-100 overflow-hidden font-sans select-none">
+      {/* Soft Apple Ambient Glow Orbs */}
+      <div className="absolute top-1/4 left-1/5 w-[30rem] h-[30rem] rounded-full bg-sky-600/10 blur-[150px] pointer-events-none liquid-orb-1" />
+      <div className="absolute bottom-1/4 right-1/4 w-[34rem] h-[34rem] rounded-full bg-indigo-600/8 blur-[170px] pointer-events-none liquid-orb-2" />
+      <div className="absolute top-2/3 left-1/3 w-80 h-80 rounded-full bg-cyan-500/6 blur-[140px] pointer-events-none" />
 
       {/* Top Operations Header Floating Glass Pill */}
       <TopNav
@@ -329,9 +329,9 @@ export const App: React.FC = () => {
       />
 
       {/* Main Tactical Workstation Deck */}
-      <div className="flex-1 flex overflow-hidden p-3 gap-3">
+      <div className="flex-1 flex overflow-hidden px-3 pb-3 pt-1 gap-3">
         {/* Left Side: Master Console & Strip Rack */}
-        <div className="w-80 flex flex-col gap-3 overflow-y-auto shrink-0 pr-0.5 z-10">
+        <div className="w-80 flex flex-col gap-3 overflow-y-auto shrink-0 pr-0.5 z-10 custom-scrollbar">
           <ControlPanel
             settings={settings}
             activeScenarioId={activeScenario.id}
@@ -368,22 +368,22 @@ export const App: React.FC = () => {
             onSelectZone={handleSelectZone}
           />
 
-          {/* Bottom Tactical Separation & Atmospheric Safety Bar */}
-          <div className="mt-2 liquid-glass px-4 py-2 rounded-2xl flex items-center justify-between text-xs shadow-2xl">
+          {/* Bottom Tactical Separation & Atmospheric Safety Bar (Floating Glass Pill) */}
+          <div className="mt-2 liquid-glass px-4 py-2 rounded-full flex items-center justify-between text-xs shadow-2xl border border-white/10">
             <div className="flex items-center gap-3">
-              <span className="text-slate-400 font-bold text-[10px] font-mono tracking-wider">
-                ATM & ATMOSPHERIC SAFETY STATUS:
+              <span className="text-slate-400 font-bold text-[9.5px] font-mono tracking-wider">
+                SAFETY STATUS:
               </span>
 
               {criticalConflicts.length > 0 ? (
-                <span className="flex items-center gap-1.5 text-red-100 font-bold liquid-glass-red px-3 py-1 rounded-xl text-[11px] font-mono animate-pulse shadow-lg">
+                <span className="flex items-center gap-1.5 text-red-100 font-bold liquid-glass-red px-3.5 py-1 rounded-full text-[11px] font-mono animate-pulse shadow-lg">
                   <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
                   STCA ALERT: {criticalConflicts[0].aircraftA.callsign} ⚡{' '}
                   {criticalConflicts[0].aircraftB.callsign} — LOSS OF SEPARATION IN{' '}
                   {criticalConflicts[0].timeToClosestApproach}s
                 </span>
               ) : criticalWeather.length > 0 ? (
-                <span className="flex items-center gap-1.5 text-red-100 font-bold liquid-glass-red px-3 py-1 rounded-xl text-[11px] font-mono animate-pulse shadow-lg">
+                <span className="flex items-center gap-1.5 text-red-100 font-bold liquid-glass-red px-3.5 py-1 rounded-full text-[11px] font-mono animate-pulse shadow-lg">
                   <CloudLightning className="w-3.5 h-3.5 text-red-400" />
                   WEATHER HAZARD: {criticalWeather[0].aircraftCallsign} ⚡{' '}
                   {criticalWeather[0].zoneName} (
@@ -393,16 +393,16 @@ export const App: React.FC = () => {
                   )
                 </span>
               ) : warningConflicts.length > 0 ? (
-                <span className="flex items-center gap-1.5 text-amber-100 font-semibold liquid-glass-amber px-3 py-1 rounded-xl text-[11px] font-mono shadow-md">
+                <span className="flex items-center gap-1.5 text-amber-100 font-semibold liquid-glass-amber px-3.5 py-1 rounded-full text-[11px] font-mono shadow-md">
                   <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
                   CONVERGING TRAFFIC: {warningConflicts[0].aircraftA.callsign} &{' '}
                   {warningConflicts[0].aircraftB.callsign} — CPA {warningConflicts[0].predictedClosestDistance}PX IN{' '}
                   {warningConflicts[0].timeToClosestApproach}s
                 </span>
               ) : (
-                <span className="flex items-center gap-1.5 text-slate-200 font-semibold liquid-glass-subtle px-3 py-1 rounded-xl text-[11px] font-mono shadow-sm border border-white/10">
+                <span className="flex items-center gap-1.5 text-slate-200 font-semibold liquid-glass-subtle px-3.5 py-1 rounded-full text-[11px] font-mono shadow-sm border border-white/10">
                   <CheckCircle className="w-3.5 h-3.5 text-sky-400" />
-                  AIRWAYS & METEOROLOGY NOMINAL — {conflictSummary.totalPairsChecked} PAIRS & {weatherZones.length} WEATHER CELLS MONITORED
+                  AIRWAYS & METEOROLOGY NOMINAL — {conflictSummary.totalPairsChecked} PAIRS & {weatherZones.length} HAZARDS MONITORED
                 </span>
               )}
             </div>
@@ -430,12 +430,12 @@ export const App: React.FC = () => {
         </div>
 
         {/* Right Side: Multi-Panel Tactical Deck (Overview / AI / Weather / STCA / Inspector / Audit) */}
-        <div className="w-96 flex flex-col gap-2.5 overflow-y-auto shrink-0 pl-0.5 z-10">
-          {/* iOS Liquid Glass Segmented 6-Tab Switcher */}
-          <div className="liquid-glass-subtle p-1 rounded-2xl grid grid-cols-6 gap-1 border border-white/10 shadow-lg">
+        <div className="w-96 flex flex-col gap-2.5 overflow-y-auto shrink-0 pl-0.5 z-10 custom-scrollbar">
+          {/* iOS Liquid Glass Segmented 6-Tab Switcher (Pill Capsule) */}
+          <div className="liquid-glass-subtle p-1 rounded-full grid grid-cols-6 gap-1 border border-white/10 shadow-lg">
             <button
               onClick={() => setRightPanelTab('overview')}
-              className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-xl text-[10px] font-bold transition-all duration-200 cursor-pointer ${
+              className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-full text-[10px] font-bold transition-all duration-200 cursor-pointer ${
                 rightPanelTab === 'overview'
                   ? 'liquid-glass-active text-white shadow-md'
                   : 'text-slate-400 hover:text-white hover:bg-white/5'
@@ -447,7 +447,7 @@ export const App: React.FC = () => {
 
             <button
               onClick={() => setRightPanelTab('ai_decision')}
-              className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-xl text-[10px] font-bold transition-all duration-200 cursor-pointer ${
+              className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-full text-[10px] font-bold transition-all duration-200 cursor-pointer ${
                 rightPanelTab === 'ai_decision'
                   ? 'liquid-glass-active text-white shadow-md'
                   : 'text-slate-400 hover:text-white hover:bg-white/5'
@@ -462,7 +462,7 @@ export const App: React.FC = () => {
 
             <button
               onClick={() => setRightPanelTab('weather')}
-              className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-xl text-[10px] font-bold transition-all duration-200 cursor-pointer ${
+              className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-full text-[10px] font-bold transition-all duration-200 cursor-pointer ${
                 rightPanelTab === 'weather'
                   ? 'liquid-glass-active text-white shadow-md'
                   : 'text-slate-400 hover:text-white hover:bg-white/5'
@@ -479,7 +479,7 @@ export const App: React.FC = () => {
 
             <button
               onClick={() => setRightPanelTab('risk_monitor')}
-              className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-xl text-[10px] font-bold transition-all duration-200 cursor-pointer ${
+              className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-full text-[10px] font-bold transition-all duration-200 cursor-pointer ${
                 rightPanelTab === 'risk_monitor'
                   ? 'liquid-glass-active text-white shadow-md'
                   : 'text-slate-400 hover:text-white hover:bg-white/5'
@@ -496,7 +496,7 @@ export const App: React.FC = () => {
 
             <button
               onClick={() => setRightPanelTab('inspector')}
-              className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-xl text-[10px] font-bold transition-all duration-200 cursor-pointer ${
+              className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-full text-[10px] font-bold transition-all duration-200 cursor-pointer ${
                 rightPanelTab === 'inspector'
                   ? 'liquid-glass-active text-white shadow-md'
                   : 'text-slate-400 hover:text-white hover:bg-white/5'
@@ -508,7 +508,7 @@ export const App: React.FC = () => {
 
             <button
               onClick={() => setRightPanelTab('event_log')}
-              className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-xl text-[10px] font-bold transition-all duration-200 cursor-pointer ${
+              className={`flex items-center justify-center gap-1 py-1.5 px-0.5 rounded-full text-[10px] font-bold transition-all duration-200 cursor-pointer ${
                 rightPanelTab === 'event_log'
                   ? 'liquid-glass-active text-white shadow-md'
                   : 'text-slate-400 hover:text-white hover:bg-white/5'

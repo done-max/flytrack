@@ -294,39 +294,39 @@ export const Airspace: React.FC<AirspaceProps> = ({
       ) : null}
 
       {/* Floating iOS Glass Control Toolbar (Top Right) */}
-      <div className="absolute top-3 right-3 z-20 flex items-center gap-2">
-        <div className="flex items-center liquid-glass px-1.5 py-1 rounded-2xl shadow-xl">
+      <div className="absolute top-3.5 right-3.5 z-20 flex items-center gap-2">
+        <div className="flex items-center liquid-glass px-2 py-1 rounded-full shadow-xl border border-white/15">
           <button
             onClick={() => handleZoom(1.15)}
             title="Zoom In"
-            className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-150 active:scale-90 cursor-pointer"
+            className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-full transition-all duration-150 active:scale-90 cursor-pointer"
           >
             <ZoomIn className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => handleZoom(0.85)}
             title="Zoom Out"
-            className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-150 active:scale-90 cursor-pointer"
+            className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-full transition-all duration-150 active:scale-90 cursor-pointer"
           >
             <ZoomOut className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={handleResetView}
             title="Reset Scope View"
-            className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-150 active:scale-90 cursor-pointer"
+            className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-full transition-all duration-150 active:scale-90 cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        <div className="liquid-glass px-3 py-1.5 rounded-2xl text-[11px] font-mono text-slate-200 flex items-center gap-1.5 shadow-xl">
+        <div className="liquid-glass px-3.5 py-1.5 rounded-full text-[11px] font-mono text-slate-200 flex items-center gap-1.5 shadow-xl border border-white/15">
           <Compass className="w-3.5 h-3.5 text-sky-400" />
           <span>MAG 000°</span>
         </div>
       </div>
 
       {/* Floating iOS Glass Scope Telemetry Footer (Bottom Left) */}
-      <div className="absolute bottom-3 left-3 z-20 flex items-center gap-2.5 liquid-glass px-3.5 py-1.5 rounded-2xl text-[11px] font-mono text-slate-300 shadow-xl">
+      <div className="absolute bottom-3.5 left-3.5 z-20 flex items-center gap-2.5 liquid-glass px-4 py-1.5 rounded-full text-[11px] font-mono text-slate-300 shadow-xl border border-white/15">
         <div className="flex items-center gap-1 text-sky-400">
           <Crosshair className="w-3.5 h-3.5" />
           <span className="font-sans font-medium text-[10px] text-slate-400">CURSOR</span>
